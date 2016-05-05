@@ -39,14 +39,14 @@ TephraProb is free software: you can redistribute it and/or modify
 function installECMWFAPI
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
 % Check Python install
 
 if system('python --version') ~= 0
-    errordlg('No version of python found on your system')
+    errordlg('No version of python found on your system', ' ')
 else
     cd('CODE/ecmwf-api-client-python/');
     system('python setup.py install --user');

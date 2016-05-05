@@ -39,7 +39,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function hazCurve_maker
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -54,7 +54,7 @@ if isdir([project.run_pth, 'SUM', filesep, 'rainy'])
 elseif isdir([project.run_pth, 'SUM', filesep, 'all'])
     runs = {'all'};
 else
-    errordlg('No output file found');
+    errordlg('No output file found', ' ');
     return
 end
 

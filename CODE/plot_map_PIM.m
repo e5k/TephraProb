@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function plot_map_PIM
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -55,7 +55,7 @@ d       = dir([project.run_pth, 'IM', filesep, 'MAT', filesep, '*.prb']);
 str     = {d.name};
 
 if isempty(str)
-    errordlg('No probabilistic isomass map found! Did you already run the post-processing?');
+    errordlg('No probabilistic isomass map found! Did you already run the post-processing?', ' ');
     return
 end
 

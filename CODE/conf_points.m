@@ -39,7 +39,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function conf_points
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -241,7 +241,7 @@ vent_zone   = get(cdp.vent, 'String');
 
 % Check inputs
 if isempty(points) || isempty(grd_name) || strcmp('e.g.', vent_zone)
-    errordlg('Please fill all parameters');
+    errordlg('Please fill all parameters', ' ');
     return
 end
 

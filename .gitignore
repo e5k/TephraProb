@@ -2,4 +2,7 @@ CURVES/*
 WIND/*
 RUNS/*
 GRID/*
+node_
+plume2.dat
+*.m~
 .DS_Store

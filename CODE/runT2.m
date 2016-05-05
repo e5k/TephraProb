@@ -37,7 +37,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function runT2
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -101,7 +101,7 @@ if stat == 0                            % If compilation ok
     runit(project.run_pth,project.par,project.cores);  % Runs model
 else
     cd(pth);
-    errordlg('There was a problem compiling TEPHRA2...');
+    errordlg('There was a problem compiling TEPHRA2...', ' ');
     display(cmd_out);
 end
 
@@ -126,9 +126,64 @@ while ischar(tline)
 end
 fclose(fid);
 
+% Check if inputs are good for the model
+[stat,cmdout] = system(stor{1});
+if stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open wind file','ONCE'));
+    errordlg('Tephra2 cannot access the wind files. Check that the path specified in the runProb function is correct and try again.', ' ');
+    return
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open points','ONCE'));
+    errordlg('Tephra2 cannot access the calculation points file. Check that the path specified in the runProb function is correct and try again.', ' ');
+    return
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open grain file','ONCE'));
+    errordlg('Tephra2 cannot access the TGSD file. Check that the path specified in the runProb function is correct and try again.', ' ');
+    return  
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open configuration file','ONCE'));
+    errordlg('Tephra2 cannot access the configuration file. Check that the path specified in the runProb function is correct and try again.', ' ');
+    return  
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Segmentation fault','ONCE'));
+    errordlg('Tephra2 returned a segmentation fault, which most likely means that there is something corrupted in your input files. Make sure all parameters specified in the runProb function are correct and try again.', ' ');
+    return  
+end
+
+
+
+
 % Loads the project file and test if the parallel option is selected
 fl = dir([run_pth, '*.mat']);
 load([run_pth, fl(1).name]);
+
+% Check one run and time it
+if par == 0
+    divider = 1;
+elseif par == 1
+    divider = cores;
+end;
+
+tic;
+system(stor{1});
+T = toc*count;
+home
+
+if T/divider < 60
+    timestr = [num2str(round(T)), ' secondes'];
+elseif T/divider/60 < 60
+    timestr = [num2str(round(T/60)), ' minutes'];    
+elseif T/divider/3600 < 24
+    timestr = [num2str(round(T/3600)), ' hours'];
+elseif T/divider/3600 >= 24
+    timestr = [num2str(round(T/3600/24)), ' days'];
+end
+
+choice = questdlg(['You are about to start running the model, which should take about ', timestr,'. It is possible to stop this process at any moment by pressing ctrl+c, Would you like to continue?'], ...
+	'Runs', ...
+	'Yes', 'No', 'Yes');
+% Handle response
+switch choice
+    case 'No'
+        return
+    case 'Yes'
+end
+
 
 % If single core
 if par == 0

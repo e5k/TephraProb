@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function probability_maker
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -56,7 +56,7 @@ elseif isdir([project.run_pth, 'OUT', filesep, 'all'])
 end
 
 if isempty(dir([project.run_pth, 'OUT', filesep, 'all', filesep, '1', filesep, '*.out']))    
-    errordlg('No output file found. Did you already run the model?');
+    errordlg('No output file found. Did you already run the model?', ' ');
     return
 end
 
@@ -221,7 +221,7 @@ if grd_type == 0 % Calculation grid is a grid
             end
             close(wb);
         else
-            errordlg('The size of the grid does not correspond to the size of the output files');
+            errordlg('The size of the grid does not correspond to the size of the output files', ' ');
         end
     end
     

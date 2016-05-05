@@ -37,7 +37,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function plot_map_PROB
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -51,14 +51,14 @@ if project.run_pth == -1
 end
 
 if project.grd_type == 1
-    errordlg('You cannot display probability maps when calculations were performed on points')
+    errordlg('You cannot display probability maps when calculations were performed on points', ' ')
     return
 end
 
 d       = dir([project.run_pth, 'PROB', filesep, 'MAT', filesep, '*.prb']);
 
 if isempty(d)
-    errordlg('No probability matrix found. Did you already run the post-processing functions?');
+    errordlg('No probability matrix found. Did you already run the post-processing functions?', ' ');
     return
 end
 

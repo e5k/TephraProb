@@ -39,7 +39,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function runProb_vulc(varargin)
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -114,7 +114,7 @@ if isfield(data, 'testrun')&& isfield(data, 'min_ri')
     
         % Check if the duration of the eruption is longer than the seasons
         if data.max_dur/data.wind_per_day > length(wind_vec_dry) || data.max_dur/data.wind_per_day > length(wind_vec_rainy)
-            errordlg('The eruption lasts longer than the seasons. The seasonality function cannot be used in this case');
+            errordlg('The eruption lasts longer than the seasons. The seasonality function cannot be used in this case', ' ');
             rmdir(out_pth);
             return
         end 
@@ -449,7 +449,7 @@ if mode == 1                                    % If in load mode
     if ~exist('data', 'var')
         return
     elseif isfield(data.var, 'long_lasting')
-        errordlg('You are trying to load a wrong type of run (i.e. Plinian)');
+        errordlg('You are trying to load a wrong type of run (i.e. Plinian)', ' ');
         state = 0;
     else      
         state = 1;

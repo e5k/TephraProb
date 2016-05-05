@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function gvp
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -434,7 +434,7 @@ end
 answer = inputdlg({'Old time limit in years (enter min for no constraint):', 'Recent time limit in years (enter now for no constraint):'},...
     'Time constraint', 1, dft);
 if ~isnan(str2double(answer{1})) && ~isnan(str2double(answer{2})) && str2double(answer{1})>str2double(answer{2})
-    errordlg('The old time constraint should be further back in time than the recent one');
+    errordlg('The old time constraint should be further back in time than the recent one', ' ');
 else
     time_lim = answer;
 end
@@ -511,7 +511,7 @@ end
 
 % Error message if resulting selection
 if isempty(data)
-    errordlg('The resulting selection is empty');
+    errordlg('The resulting selection is empty', ' ');
     return
 end
 

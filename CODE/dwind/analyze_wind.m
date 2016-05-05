@@ -39,7 +39,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function analyze_wind
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -386,19 +386,19 @@ global w2 stor_data trgt
 % Identifies errors
 % Case any othe time than All and no subset selected
 if ~strcmp(get(get(w2.time, 'SelectedObject'), 'String'), 'All') && isempty(length(get(w2.subtime_table, 'Value')))
-    errordlg('When plotting roses, please select only one time subset');
+    errordlg('When plotting roses, please select only one time subset', ' ');
     return
 % Case Roses and single profiles    
 elseif strcmp(get(get(w2.type, 'SelectedObject'), 'String'), 'Roses') && strcmp(get(get(w2.time, 'SelectedObject'), 'String'), 'Profiles')
-    errordlg('You can not plot roses for single profiles');
+    errordlg('You can not plot roses for single profiles', ' ');
     return
 % Case single profiles and multiple time subsets    
 elseif strcmp(get(get(w2.time, 'SelectedObject'), 'String'), 'Profiles') && length(get(w2.subtime_table, 'Value')) > 1
-    errordlg('Please select one single profile at the time');
+    errordlg('Please select one single profile at the time', ' ');
     return
 % Case separate and empty selection
 elseif strcmp(get(get(w2.subtype, 'SelectedObject'), 'String'), 'Separate') && isempty(get(w2.subtime_table, 'Value'))
-    errordlg('Please select one time subset');
+    errordlg('Please select one time subset', ' ');
     return
 end
 
@@ -418,7 +418,7 @@ switch get(get(w2.type, 'SelectedObject'), 'String')
                     case 'Averaged'
                         average_whole(0);
                     case 'Separate'
-                        errordlg('Quit messing around with the program!');
+                        errordlg('Quit messing around with the program!', ' ');
                         return;
                 end
                 
@@ -441,7 +441,7 @@ switch get(get(w2.type, 'SelectedObject'), 'String')
             case 'Profiles'
                 switch get(get(w2.subtype, 'SelectedObject'), 'String')
                     case 'Averaged'
-                        errordlg('Quit messing around with the program!');
+                        errordlg('Quit messing around with the program!', ' ');
                         return;
                     case 'Separate'
                         data = stor_data(:,:,get(w2.subtime_table, 'Value'));
@@ -458,7 +458,7 @@ switch get(get(w2.type, 'SelectedObject'), 'String')
             case 'Months'
                 average_rose(2);
             case 'Profiles'
-                errordlg('Quit messing around with the program!');
+                errordlg('Quit messing around with the program!', ' ');
                 return;
         end 
 end

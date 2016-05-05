@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function dwind_ECMWF
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
-    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd))
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
@@ -283,7 +283,7 @@ global tmp
 %load(fl2l);
 
 if isempty(get(w.wind4_name, 'String')) || isempty(get(w.wind2_lon, 'String')) || isempty(get(w.wind2_lat, 'String'))
-    errordlg('Please fill up all fields');
+    errordlg('Please fill up all fields', ' ');
 else
     % Retrieve data and stores it in a structure
     tmp = struct;

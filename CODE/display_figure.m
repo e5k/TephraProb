@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 function display_figure
 [flname, flpath] = uigetfile('*.fig', 'Choose a figure to display');
 
-if isempty(flname)
+if flname == 0
     return;
 end
 
