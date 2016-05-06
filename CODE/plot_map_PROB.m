@@ -68,6 +68,9 @@ s       = listdlg('PromptString','Select one or multiple files to plot:',...
                 'ListString',str);
             
 if ~isempty(s)
+    
+    display(sprintf('_____________________________________________________________________________________________\nTip: To save maps:\n\t1. Click on the map to save\n\t2. in the Matlab command line, type\n\t  >> print(gcf, ''-dpdf'', ''mapname.pdf'')\n\twhich will save the map under TephraProb/mapname.pdf\n_____________________________________________________________________________________________\n'))
+
     XX      = load(['GRID', filesep, project.grd_pth, filesep, project.grd_pth, '_lon.dat']);
     YY      = load(['GRID', filesep, project.grd_pth, filesep, project.grd_pth, '_lat.dat']);
     
