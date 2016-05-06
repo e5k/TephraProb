@@ -36,7 +36,7 @@ TephraProb is free software: you can redistribute it and/or modify
 %}
 
 
-function runProb_vulc(varargin)
+function runProb_vulc
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
@@ -538,25 +538,10 @@ t.fig = figure(...
                 'ForegroundColor', [.9 .5 .0],...
                 'String', 'Ok');
 
-           % Cancel button    
-           t.cancel = uicontrol(...
-                'parent', t.main,...
-                'Style', 'pushbutton',...
-                'units', 'normalized',...
-                'position', [.7 .02 .12 .06],...
-                'BackgroundColor', [.3 .3 .3],...
-                'ForegroundColor', [.9 .5 .0],...
-                'String', 'Cancel');
-
 % Callback for ok button
 set(t.ok, 'callback', {@test_param, t})
-set(t.cancel, 'callback', {@cancel, t})
 set(t.m11, 'callback', {@load_data, t})
 uiwait(t.fig);
-
-% Test input parameters
-function cancel(~, ~, ~)
-close(gcf);
 
 % Test input parameters
 function test_param(~, ~, t)
@@ -567,18 +552,47 @@ tmp  = get(t.tab, 'Data');      % Retrieve data table
 
 % Go through input parameters
 for i = 1:size(tmp, 1)
-    % If line is not empty (i.e. sedata.parator)
+    % If line is not empty (i.e. separator)
     if ~isempty(tmp{i,1}) && ~isempty(tmp{i,2}) && ~isempty(tmp{i,3})
         if isnan(str2double(tmp{i,2}))                                      % If cell is a string
-            data = setfield(data, tmp{i,1}, tmp{i,2});
-        else                                                                % Else convert it to double
-            data = setfield(data, tmp{i,1}, str2double(tmp{i,2}));
+            data.(tmp{i,1}) = tmp{i,2}; % = setfield(data, tmp{i,1}, tmp{i,2});
+        else     
+            % Else convert it to double
+            data.(tmp{i,1}) = str2double(tmp{i,2});
+            %data = setfield(data, tmp{i,1}, str2double(tmp{i,2}));
         end
     end
 end
-data.testrun = 1;
 
-close(t.fig);
+errchk  = 0;
+warnstr = 'The following problems were identified:\n';
+if ~exist(data.grid_pth, 'file')
+    warnstr = strcat(warnstr, '- The path to the grid file does not exist\n'); errchk = 1;
+elseif ~isdir(data.wind_pth)
+    warnstr = strcat(warnstr, '- The path to the wind files does not exist\n'); errchk = 1;
+elseif data.max_ht < data.min_ht
+    warnstr = strcat(warnstr, '- The maximum plume height is lower than the minimum plume height\n'); errchk = 1;
+elseif data.max_mass < data.min_mass
+    warnstr = strcat(warnstr, '- The maximum mass is lower than the minimum mass\n'); errchk = 1;
+elseif data.max_dur < data.min_dur
+    warnstr = strcat(warnstr, '- The maximum duration is lower than the minimum duration\n'); errchk = 1;
+elseif data.min_phi < data.max_phi
+    warnstr = strcat(warnstr, '- The max_phi variable represents the coarsest material, i.e. the smallest number in phi units\n'); errchk = 1;
+elseif data.max_med_phi < data.min_med_phi
+    warnstr = strcat(warnstr, '- The maximum median phi is lower than the minimum median phi\n'); errchk = 1;
+elseif data.max_std_phi < data.min_std_phi
+    warnstr = strcat(warnstr, '- The maximum std phi is lower than the minimum std phi\n'); errchk = 1;
+elseif data.max_agg < data.min_agg
+    warnstr = strcat(warnstr, '- The maximum aggregation coefficient is lower than the minimum maggregation coefficient\n'); errchk = 1;
+end
 
+if errchk == 1
+    wrn = warndlg(sprintf(warnstr), ' ');
+    waitfor(wrn);
+    close(t.fig);
+    data_gui(tmp);
     
-
+else
+    data.testrun = 1;
+    close(t.fig);
+end

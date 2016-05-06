@@ -614,19 +614,9 @@ t.fig = figure(...
                 'ForegroundColor', [.9 .5 .0],...
                 'String', 'Ok');
 
-%            % Cancel button    
-%            t.cancel = uicontrol(...
-%                 'parent', t.main,...
-%                 'Style', 'pushbutton',...
-%                 'units', 'normalized',...
-%                 'position', [.7 .02 .12 .06],...
-%                 'BackgroundColor', [.3 .3 .3],...
-%                 'ForegroundColor', [.9 .5 .0],...
-%                 'String', 'Cancel');
 
 % Callback for ok button
 set(t.ok, 'callback', {@test_param, t})
-%set(t.cancel, 'callback', {@cancel, t})
 set(t.m11, 'callback', {@load_data, t})
 uiwait(t.fig);
 
@@ -674,11 +664,12 @@ elseif data.max_agg < data.min_agg
 end
 
 if errchk == 1
-    warndlg(sprintf(warnstr));
-    return
+    wrn = warndlg(sprintf(warnstr), ' ');
+    waitfor(wrn);
+    close(t.fig);
+    data_gui(tmp);
+    
 else
     data.testrun = 1;
     close(t.fig);
 end
-
-
