@@ -43,7 +43,7 @@ if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
     return
 end
 
-global w2 stor_data
+global w2 stor_data stor_time
 
 [FileName, FilePath] = uigetfile('*.mat', 'Load a wind project', 'wind.mat');
 

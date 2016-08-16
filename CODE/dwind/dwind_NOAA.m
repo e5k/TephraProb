@@ -555,8 +555,8 @@ try
 
                    [content, statut] = urlread(page);
                    if statut == 0
-                       statut
-                       page;
+%                        statut;
+%                        page;
                        break
                    else
                        c=c+1;
