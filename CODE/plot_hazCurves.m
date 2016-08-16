@@ -44,10 +44,15 @@ end
 
 d       = dir(['CURVES', filesep, '*.out']);
 str     = {d.name};
-s       = listdlg('PromptString','Select one or multiple files to plot:',...
-                'SelectionMode','multiple',...
-                'ListString',str);
-            
+
+if ~isempty(str)
+    s       = listdlg('ListString',str,...
+                    'PromptString','Select one or multiple files to plot:',...
+                    'SelectionMode','multiple');
+else
+    warndlg('You have not computed hazard curves yet!');
+end
+
 if ~isempty(s)
     cmap = linspecer(length(s));
     
@@ -59,13 +64,14 @@ if ~isempty(s)
         leg{i}  = sprintf('%s', get_name(str{s(i)}));
         plot(file(:,1), file(:,2), 'Color', cmap(i,:));
     end
+    
+    xlabel('Mass accumulation (kg/m^2)');
+    ylabel('Exceedance probability');
+    set(gca, 'YScale', 'Log', 'XScale', 'Log', 'Box', 'on');
+    xlim([0.001, 1000]);
+    legend(leg,'Interpreter', 'none');
+    hold off
 end
-xlabel('Mass accumulation (kg/m^2)');
-ylabel('Exceedance probability');
-set(gca, 'YScale', 'Log', 'XScale', 'Log', 'Box', 'on');
-xlim([0.001, 1000]);
-legend(leg,'Interpreter', 'none');
-hold off
 
 function nm = get_name(str)
 idx = strfind(str, '.out');
