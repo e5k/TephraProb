@@ -5,17 +5,17 @@ import os
 ## Enter the required data below
 
 # Time of dataset
-year_start  = var_year_start
-year_end    = var_year_end
-month_start = var_month_start
-month_end   = var_month_end
+year_start  = 2000
+year_end    = 2015
+month_start = 1
+month_end   = 12
 # Area
-north       = var_north
-south       = var_south
-west        = var_west
-east        = var_east
+north       = 32.58
+south       = 30.58
+west        = 129.659
+east        = 131.659
 # Output folder, i.e. replace by your project name
-out_path    = 'var_out'
+out_path    = 'WIND/saku0015/'
 
 
 ## Time of dataset

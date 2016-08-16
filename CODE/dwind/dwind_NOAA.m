@@ -387,10 +387,10 @@ else
     % Create folder
 
     if exist(tmp.folder, 'dir') == 7
-        choice = questdlg('This name is already taken. Overwrite?', ...
-        '', 'Yes','No','No');
+        choice = questdlg('This name is already taken. Overwrite or attempt to restart an aborted download?', ...
+        '', 'Overwrite','Restart', 'Cancel', 'Restart');
         switch choice
-            case 'Yes'
+            case 'Overwrite'
                 rmdir(tmp.folder, 's');
                 mkdir(tmp.folder);
                 mkdir([tmp.folder, filesep, 'nc_output_files', filesep]);
@@ -399,7 +399,10 @@ else
                 %mkdir([tmp.folder, filesep, 'dl', filesep]);
                 dlmwrite([tmp.folder, filesep,'.ncep'], '.ncep');
                 download(w);
-            case 'No'
+				
+			case 'Restart'
+				download(w, length(dir([tmp.folder, filesep, 'nc_output_files', filesep, '*.nc'])));
+            case 'Cancel'
         end
     else
         mkdir(tmp.folder);
@@ -553,7 +556,7 @@ try
                    [content, statut] = urlread(page);
                    if statut == 0
                        statut
-                       page
+                       page;
                        break
                    else
                        c=c+1;
