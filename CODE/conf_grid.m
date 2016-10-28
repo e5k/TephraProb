@@ -15,6 +15,7 @@ Purpose:    Prepare TephraProb computation grids usable with TEPHRA2
 Author:     S�bastien Biass
 Created:    April 2015
 Updates:    April 2015
+            Octobre 2016: Fixed a bug for crossing of equator
 Copyright:  S�bastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -760,6 +761,10 @@ end
  
 [min_e, min_n]   = ll2utm(min_lat, min_lon, abs(tmp.vent_zone));
 [max_e, max_n]   = ll2utm(max_lat, max_lon, abs(tmp.vent_zone));
+
+if tmp.cross_eq == 1
+    min_n = -(1e7-min_n);
+end
 
 x_vec = min_e : tmp.res : max_e;
 y_vec = min_n : tmp.res : max_n;
