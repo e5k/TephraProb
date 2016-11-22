@@ -16,6 +16,7 @@ Author:     Sebastien Biass
 Created:    April 2015
 Updates:    April 2016: Added the option to chose maximum aggregated
                         diameter
+            Nov 2016  : ESP generation doesn't use parallel anymore
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -72,14 +73,14 @@ if isfield(data, 'testrun')&& isfield(data, 'min_ri')
     data = rmfield(data, 'testrun');
     save([out_pth, data.run_name, '_', num2str(run_nb), '.mat'], 'data');
 
-    % If using the Parallel Computing Toolbox
-    if data.par == 1
-        if verLessThan('matlab', '8.2')
-            matlabpool(data.par_cpu); %#ok<*DPOOL>
-        else
-            parpool(data.par_cpu);
-        end
-    end
+%     % If using the Parallel Computing Toolbox
+%     if data.par == 1
+%         if verLessThan('matlab', '8.2')
+%             matlabpool(data.par_cpu); %#ok<*DPOOL>
+%         else
+%             parpool(data.par_cpu);
+%         end
+%     end
 
     % Check if seasonality option is enable and wind preprocessing
     wind_vec_all    = datenum(data.wind_start):1/data.wind_per_day:(datenum(data.wind_start)+data.nb_wind/data.wind_per_day)-1/data.wind_per_day;     % Wind vector for the entire population

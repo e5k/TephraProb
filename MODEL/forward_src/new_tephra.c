@@ -231,10 +231,10 @@ int main(int argc, char *argv[]) { /* MAIN CODE STARTS HERE */
 		(pt+i)->calculated_mass);
 		/* Print out percent of total */
 		/* Seb, Aug16 - Probability of grainsize */
-	  for (bin=0; bin < PART_STEPS; bin++) {
+	  /*for (bin=0; bin < PART_STEPS; bin++) {
 	  	val = ((pt+i)->calculated_phi[bin]/(pt+i)->calculated_mass) * 100.0;
 	    printf("%g ", val);
-	  }
+	  }*/
 	  printf("\n");
 	}
   print_for_stats(0); 
