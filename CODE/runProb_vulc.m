@@ -428,13 +428,13 @@ if isfield(data, 'testrun')&& isfield(data, 'min_ri')
     fclose(fid_T2);
 
     % Close the data.parpool
-    if data.par == 1
-        if verLessThan('matlab', '8.2')
-            matlabpool close;
-        else
-            close(gcp);
-        end
-    end
+%     if data.par == 1
+%         if verLessThan('matlab', '8.2')
+%             matlabpool close;
+%         else
+%             close(gcp);
+%         end
+%     end
 end
 
 

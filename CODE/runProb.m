@@ -505,13 +505,13 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
     display(sprintf('\nSampling of Eruption Source Parameters finished!'));
     
     % Close the parpool
-    if data.par == 1
-        if verLessThan('matlab', '8.2')
-            matlabpool close; %#ok<DPOOL>
-        else
-            delete(gcp);
-        end
-    end
+%     if data.par == 1
+%         if verLessThan('matlab', '8.2')
+%             matlabpool close; %#ok<DPOOL>
+%         else
+%             delete(gcp);
+%         end
+%     end
 end
 
 

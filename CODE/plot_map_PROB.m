@@ -69,7 +69,7 @@ s       = listdlg('PromptString','Select one or multiple files to plot:',...
             
 if ~isempty(s)
     
-    display(sprintf('_____________________________________________________________________________________________\nTip: To save maps:\n\t1. Click on the map to save\n\t2. in the Matlab command line, type\n\t  >> print(gcf, ''-dpdf'', ''mapname.pdf'')\n\twhich will save the map under TephraProb/mapname.pdf\n_____________________________________________________________________________________________\n'))
+    display(sprintf('_____________________________________________________________________________________________\nTip: To save maps:\n\t1. Click on the map to save\n\t2. in the Matlab command line, type\n\t  >> print(gcf, ''-dpdf'', ''mapname.pdf'')\n\twhich will save the map under TephraProb/mapname.pdf\nYou can also type\n\t  >> saveAllMaps\n\tto save all opened maps to the root folder.\n _____________________________________________________________________________________________\n'))
 
     XX      = load(['GRID', filesep, project.grd_pth, filesep, project.grd_pth, '_lon.dat']);
     YY      = load(['GRID', filesep, project.grd_pth, filesep, project.grd_pth, '_lat.dat']);
@@ -80,7 +80,7 @@ if ~isempty(s)
         file        = load([project.run_pth, 'PROB', filesep, 'MAT', filesep, str{s(i)}]);
         file(file<prefs.maps.min_prob) = nan;
         % Plot
-        figure;
+        figure('Name',[project.run_name, '_PROB_', str{s(i)}]);
         contours    = prefs.maps.prob_contour;
         hd          = pcolor(XX,YY,file); shading flat; hold on;
         [c,h]       = contour(XX,YY,file,contours, 'Color', 'k');
