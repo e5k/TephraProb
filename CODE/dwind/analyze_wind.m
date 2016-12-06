@@ -731,11 +731,10 @@ end
 shaped_data(:,2) = shaped_data(:,2)+180;
 
 if trgt == 1
-    WindRose(shaped_data(:,2), shaped_data(:,1),'AngleNorth',180,'AngleEast',270,'FreqLabelAngle',60,'CenteredIn0',false,  'TitleString', '');
-
+    WindRose(shaped_data(:,2), shaped_data(:,1),'AngleNorth',180,'AngleEast',270,'FreqLabelAngle',60,'CenteredIn0',true,  'TitleString', '', 'cmap', 'parula', 'ndirections', 16, 'nfreq', 4, 'vwinds', [0,5,10,20,30,40]);
 else
     w2.s1 = axes('units', 'normalized', 'Parent', w2.wind1, 'position', [.1 .53 .8 .42], 'XColor', [1 1 1], 'YColor', [1 1 1], 'FontSize', 8);  
-    w2.w1 = WindRose(shaped_data(:,2), shaped_data(:,1),'AngleNorth',180,'AngleEast',270,'FreqLabelAngle',60,'CenteredIn0',false, 'axes', w2.s1, 'TitleString', '', 'figColor',[.25 .25 .25], 'textcolor', 'w');
+    w2.w1 = WindRose(shaped_data(:,2), shaped_data(:,1),'AngleNorth',180,'AngleEast',270,'FreqLabelAngle',60,'CenteredIn0',true, 'axes', w2.s1, 'TitleString', '', 'figColor',[.25 .25 .25], 'textcolor', 'w', 'cmap', 'parula', 'ndirections', 16, 'nfreq', 4, 'vwinds', [0,5,10,20,30,40]);
 end
 
 function dout = check_data(data)

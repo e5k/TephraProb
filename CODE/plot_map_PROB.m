@@ -85,6 +85,7 @@ if ~isempty(s)
         hd          = pcolor(XX,YY,file); shading flat; hold on;
         [c,h]       = contour(XX,YY,file,contours, 'Color', 'k');
         clabel(c,h, 'LabelSpacing', 1000, 'FontWeight', 'bold')
+        
         set(hd, 'FaceAlpha', 0.5)
         
         % Define scaling

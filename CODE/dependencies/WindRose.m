@@ -306,6 +306,23 @@ count     = PivotTableCount(N,n,vwinds,speed,dir,NumberElements);          % For
 
 if isempty(circlemax)                                                      % If no max frequency is specified
     circlemax = ceil(max(max(count))/FrequenciesRound)*FrequenciesRound;   % Round highest frequency to closest whole multiple of theFrequenciesRound  (Use round or ceil as desired)
+    
+    % Added by Seb
+    if circlemax <= 5
+        circlemax = 5;
+    elseif circlemax > 5 && circlemax <= 10
+        circlemax = 10;    
+    elseif circlemax > 10 && circlemax <= 20
+        circlemax = 20;
+    elseif circlemax > 20 && circlemax <= 30
+        circlemax = 30;
+    elseif circlemax > 30 && circlemax <= 40
+        circlemax = 40;
+    elseif circlemax > 40 && circlemax <= 50
+        circlemax = 50;       
+    elseif circlemax > 50 && circlemax <= 60
+        circlemax = 60;
+    end
 end
 
 min_radius = min_radius*circlemax;                                         % The minimum radius is initially specified as a fraction of the circle max, convert it to absolute units.
@@ -320,7 +337,7 @@ circlemax = circlemax/max(eps,scalefactor);                                % If 
 if isaxisempty; set(axs,'position',[0 0 1 1]); end                         % If no axes were specified, set the axes position to fill the whole figure.
 %% Constant frequecy circles and x-y axes + Draw + Labels
 
-[x,y]     = cylinder(1,50); x = x(1,:); y = y(1,:);                        % Get x and y for a unit-radius circle
+[x,y]     = cylinder(1,200); x = x(1,:); y = y(1,:);                        % Get x and y for a unit-radius circle
 circles   = linspace(0,circlemax,NFrequencies+1); circles = circles(2:end);% Radii of the circles that must be drawn (frequencies). We do not want to spend time drawing radius=0.
 
 radius     = circles    + min_radius;                                      % for each circle, add the minimum radius
@@ -338,9 +355,11 @@ if ~isaxisempty % If axis are specified (not empty)
     uistack(h,'bottom');                                                   % the circle must be placed below everything.
 end
 plot(axs,x'*radius,y'*radius,':','color',TextColor);                       % Draw dooted circle lines
-plot(axs,x*radiusmax,y*radiusmax,'-','color',TextColor);                   % Redraw last circle line in solid style
+plot(axs,x*radiusmax,y*radiusmax,'-','color',TextColor, 'linewidth', 1.5); % Redraw last circle line in solid style
 
-axisangles = 0:30:360; axisangles = axisangles(1:end-1);                   % Angles in which to draw the radial axis (trigonometric reference)
+%axisangles = 0:30:360; axisangles = axisangles(1:end-1);                   % Angles in which to draw the radial axis (trigonometric reference)
+% Modified by Seb
+axisangles = 0:2*n:360; axisangles = axisangles(2:end); axisangles = axisangles-n; 
 R = [min_radius;radiusmax];                                                % radius
 plot(axs,R*cosd(axisangles),R*sind(axisangles),':','color',TextColor);     % Draw radial axis, in the specified angles
 
@@ -431,7 +450,8 @@ function [color,axs] = DrawPatches(N,n,vwinds,count,colorfun,figcolor,min_radius
             y1    = r(1) * cosd(fliplr(alpha));                            % and y
             x     = [x1 r(2)*sind(alpha)];                                 % Create circular sectors, completing x1 and y1 with the upper radius.
             y     = [y1 r(2)*cosd(alpha)];
-            fill(x,y,color(j,:),'edgecolor',hsv2rgb(rgb2hsv(color(j,:)).*[1 1 0.7])); % Draw them in the specified coloe. Edge is slightly darker.
+            %fill(x,y,color(j,:),'edgecolor',hsv2rgb(rgb2hsv(color(j,:)).*[1 1 0.7])); % Draw them in the specified coloe. Edge is slightly darker.
+            fill(x,y,color(j,:),'edgecolor','k', 'linewidth',.2); % Draw them in the specified coloe. Edge is slightly darker.
         end
     end
 
@@ -446,7 +466,7 @@ function FrequecyLabels(circles,radius,angulo,TextColor)
     if rmin>0
         if c>0; ha = 'right'; elseif c<0; ha = 'left';   else ha = 'center'; end % Depending on the sign of the cosine, horizontal alignment should be one or another
         if s>0; va = 'top';   elseif s<0; va = 'bottom'; else va = 'middle'; end % Depending on the sign of the sine  , vertical   alignment should be one or another
-        text(rmin*c,rmin*s,'0%','HorizontalAlignment',ha,'verticalalignment',va,'color',TextColor); % display the labels for each circle
+        %text(rmin*c,rmin*s,'0%','HorizontalAlignment',ha,'verticalalignment',va,'color',TextColor); % display the labels for each circle
     end
     
 function CardinalLabels(circlemax,TextColor,labels)
