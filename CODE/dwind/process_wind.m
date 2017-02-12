@@ -15,6 +15,7 @@ Purpose:    Convert NetCDF files into ascii wind profiles
 Author:     Sebastien Biass
 Created:    April 2015
 Updates:    2015/10/05 Bug fix in wind direction
+            2017/02/11 Re-wrote the processing with interpolation
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -43,147 +44,145 @@ if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
 end
 
 if nargin == 0
-    folder  = uigetdir;                                 % Retrieve directory
-    if folder==0
+    [file,path]  = uigetfile('*.mat', 'Select the wind.mat file');              	 % Retrieve directory
+    if file==0
         return
     end
-    folder  = [folder, filesep];                        % Cat folder
+    load(fullfile(path, file)); % Load wind project
 else
-    folder  = varargin{1};
+    wind = varargin{1};
 end
 
+folder  = [wind.folder];
 
+in_path = [folder, 'nc', filesep];     % Set main path for nc files
+out_path= [folder, 'ascii', filesep];    % Set main path for generated profiles
 
-in_path = [folder, 'nc_output_files', filesep];     % Set main path for nc files
-out_path= [folder, 'txt_output_files', filesep];    % Set main path for generated profiles
+date_start  = datenum([str2double(wind.yr_s), str2double(wind.mt_s), 1, 0, 0, 0]);
+date_end    = datenum([str2double(wind.yr_e), str2double(wind.mt_e), eomday(str2double(wind.yr_e), str2double(wind.mt_e)), 18, 0, 0]);
+stor_time   = datevec(date_start:0.25:date_end);
 
-if exist([folder, 'vent'], 'file') == 2
-    dataset = 2;    % ECMWF ERA-Interim
-else
-    dataset = 1;    % NOAA NCEP/NCAR Reanalysis 1
-end
+% Case NOAA NCEP/NCAR
+if ~strcmp(wind.db, 'Interim') 
+    if strcmp(wind.db, 'Reanalysis1')
+        in_path = 'WIND/_Reanalysis1_Rawdata/';
+    elseif strcmp(wind.db, 'Reanalysis2')
+        in_path = 'WIND/_Reanalysis2_Rawdata/';
+    end
 
-
-% Case NOAA NCEP/NCAR Reanalysis 1
-if dataset == 1
-    %files   = dir([folder,'nc_output_files', filesep, '*.nc']);
     
-
-    lev     = [1000, 925, 850, 700, 600, 500, 400, 300, 250, 200, 150, 100, 70, 50, 30, 20, 10];
-    var     = {'gheight', 'uwind', 'vwind'};    
-    var2r   = {'hgt', 'uwnd', 'vwnd'};
+    % Set storage matrices
+    stor_data   = zeros(17, 3, length(stor_time));           % Main storage matrix
+    
+    tI      = 1; % Time index used to fill the storage matrix
     
     % Read nc files
-    h       = waitbar(0,'Reading nc files...');
-    for iV = 1:length(var)          % Loop through variables
-        for iL = 1:length(lev)      % Loop through levels
-            if iV == 1 && iL == 1   % Reads the first file to get the time index
-                tmp         = ncread([in_path, 'gheight_1000mb.nc'],'time'); 
-                stor_time   = datevec(datenum([1800,1,1,0,0,0])+(tmp./24));                 % Time vector
-                stor_tmp    = zeros(length(stor_time), length(var), length(lev));           % Temporary storage matrix
-                stor_data   = zeros(length(lev), length(var), length(stor_time));           % Main storage matrix
+    for iY = str2double(wind.yr_s):str2double(wind.yr_e)      % Loop through years
+        display(sprintf('Reading year %4.0f', iY))
+        % Retrieve the extent
+        if iY == str2double(wind.yr_s)
+            LAT     = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'lat'); 
+            LON     = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'lon'); LON(LON>180) = LON(LON>180)-360;
+            latI(1) = find(LAT == wind.lat_min);
+            latI(2) = find(LAT == wind.lat_max);
+            latI = fliplr(latI);
+            lonI(1) = find(LON == wind.lon_min);
+            lonI(2) = find(LON == wind.lon_max);           
+        end
+        
+        TIME = datevec(datenum([1800,1,1,0,0,0])+(ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'time')./24));
+        
+        % Read NetCDF files
+        display(sprintf('\tReading uwind'))
+        UWND = ncread([in_path, 'uwnd.', num2str(iY), '.nc'], 'uwnd');
+        display(sprintf('\tReading vwind'))
+        VWND = ncread([in_path, 'vwnd.', num2str(iY), '.nc'], 'vwnd');      
+        display(sprintf('\tReading geopotential height'))
+        HGT = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'hgt');
+        
+        % Find the intersection between time vector of the requested
+        % dataset and the NC file
+        [~,~,timeI] = intersect(datenum(stor_time),datenum(TIME));
+        
+        display(sprintf('\tInterpolating and writing ascii files'))
+        for iT = 1:length(timeI)
+            for iL = 1:17
+                % Interpolate to vent coordinates
+                u   = intVent(UWND, LON, LAT, latI, lonI, wind, iL, iT);
+                v	= intVent(VWND, LON, LAT, latI, lonI, wind, iL, iT);
+                z   = intVent(HGT, LON, LAT, latI, lonI, wind, iL, iT);
+                                
+                speed   = sqrt(u.^2+v.^2);                                  % Wind speed
+                angle   = atan2d(u,v);                                      % Wind direction
+                angle(angle<0) = 360+angle(angle<0);                        % Get rid of negative value
+                
+                stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
             end
-            
-            tmpvar  = ncread([in_path, var{iV}, '_', num2str(lev(iL)), 'mb.nc'], var2r{iV});   % Retrieve data from nc file
-            tmpvar  = reshape(tmpvar, length(stor_time), 1);                                % Reshape data
-            stor_tmp(:,iV,iL) = tmpvar;                                                     % Add to the storage matrix
-        end 
-        waitbar(iV/length(var),h);
+            dlmwrite([out_path, num2str(iT, '%05i'), '.gen'], stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+            tI = tI+1;
+        end                                      
     end
-    delete(h);
-    
-    % Write profiles
-    h      = waitbar(0,'Writing profiles...');
-    for iT = 1:length(stor_time)
-        z  = reshape(stor_tmp(iT, 1, :), 17, 1);    % Extract height
-        u  = reshape(stor_tmp(iT, 2, :), 17, 1);    % Extract u wind
-        v  = reshape(stor_tmp(iT, 3, :), 17, 1);    % Extract v wind
-        
-        speed   = sqrt(u.^2+v.^2);
-        angle   = atan2d(u,v); 
-        angle(angle<0) = 360+angle(angle<0);         % Get rid of negative values
-        
-        stor_data(:,:,iT) = [z, speed, angle];      % Convert vectors to wind speed and direction and fill the storage matrix
-        dlmwrite([out_path, num2str(iT, '%05i'), '.gen'], [z, speed, angle], 'delimiter', '\t', 'precision', 5);     % Write the wind file
-        waitbar(iT/length(stor_time),h);
-    end
-    delete(h);
-
+    display('Done!')
 % Case ECMWF ERA-Interim
-elseif dataset == 2
+else
     
-    % Dialog box to input vent coordinates
-    vent        = load([folder,'vent'], '-mat');
-    vent        = vent.vent;
-    %coor        = inputdlg({'Vent latitude:', 'Vent longitude:'}, 'Vent coordinates', 1);
-    lat         = str2double(vent.lat);     % Retrieve vent latitude
-    lon         = str2double(vent.lon);     % Retrieve vent longitude
-    % Assures longitude is expressed as E
-    if lon < 0
-        lon = 360+lon;
-    end
+%     % Dialog box to input vent coordinates
+%     vent        = load([folder,'vent'], '-mat');
+%     vent        = vent.vent;
+%     %coor        = inputdlg({'Vent latitude:', 'Vent longitude:'}, 'Vent coordinates', 1);
+%     lat         = str2double(vent.lat);     % Retrieve vent latitude
+%     lon         = str2double(vent.lon);     % Retrieve vent longitude
+%     % Assures longitude is expressed as E
+%     if lon < 0
+%         lon = 360+lon;
+%     end
     
-    fl          = dir([in_path, '*.nc']);   % List files
+    % Set storage matrices
+    stor_data   = zeros(length(37), 3, length(stor_time));           % Main storage matrix
     
-    % Operations to retrive the time
-    dummy_s     = fl(1).name;
-    dummy_e     = fl(size(fl, 1)).name;
-    dummy_s2    = ['01-', dummy_s(7:9), '-', dummy_s(11:14), ' 00:00:00'];
-    dummy_e2    = ['31-', dummy_e(7:9), '-', dummy_e(11:14), ' 18:00:00'];
-    nb_files    = etime(datevec(dummy_e2), datevec(dummy_s2))/(3600*24)*4; % Get the number of final wind profiles
+    tI      = 1; % Time index used to fill the storage matrix
 
-    stor_data   = zeros(37, 3, nb_files);   % Main storage matrix
-    stor_time   = zeros(nb_files, 6);       % Time vector
+    T = unique(stor_time(:,1:2), 'rows');
     
-    % Get indices of the closest grid cell to vent coordinates
-    lon_tmp     = ncread([in_path, fl(1).name], 'longitude');
-    lat_tmp     = ncread([in_path, fl(1).name], 'latitude');
-    [~,lon_idx] = min(abs(lon_tmp-lon));
-    [~,lat_idx] = min(abs(lat_tmp-lat));
-    
-    count_stor  = 1;                        % Counter for storage indexing
-
-    % Read nc files
-    h = waitbar(0,'Reading nc files...');
-    for i = 1:length(fl)
-        % Retrieve data from nc files
-        z       = ncread([in_path, fl(i).name], 'z')/9.80665;     
-        z       = squeeze(z(lon_idx,lat_idx,:,:));
-        u       = ncread([in_path, fl(i).name], 'u');             
-        u       = squeeze(u(lon_idx,lat_idx,:,:));
-        v       = ncread([in_path, fl(i).name], 'v');             
-        v       = squeeze(v(lon_idx,lat_idx,:,:));
-        t       = ncread([in_path, fl(i).name], 'time');
-
-        time    = size(z,2);
-        level   = size(z,1);
-        speed   = sqrt(u.^2+v.^2);
-        angle   = atan2d(u,v); 
-
-        angle(angle<0) = 360+angle(angle<0); % Get rid of negative values
+    for iF = 1:size(T,1)
+        nc = [num2str(iF, '%05.0f'), '_', datestr([T(iF,:), 1, zeros(1,3)], 'mmm'), '_', num2str(T(iF,1)), '.nc'];
         
-        % Fills storage matrices
-        stor_data(:,:,count_stor:count_stor+time-1) = [reshape(z, level,1,time), reshape(speed, level,1,time) reshape(angle, level,1,time)];
-        stor_time(count_stor:count_stor+time-1, :)  = datevec(datenum([1900 1 1 0 0 0])+double(t)./24);
-
-        count_stor     = count_stor+time;
-        waitbar(i/length(fl),h);
+        % Read NetCDF files
+        display(sprintf('Reading file %s', nc))
+        HGT       = ncread([in_path, nc], 'z')/9.80665;
+        UWND      = ncread([in_path, nc], 'u'); 
+        VWND      = ncread([in_path, nc], 'v'); 
+        
+        LAT       = ncread([in_path, nc], 'latitude');
+        LON       = ncread([in_path, nc], 'longitude'); LON(LON>180) = LON(LON>180)-360;
+               
+        display(sprintf('\tInterpolating and writing ascii files'))
+        for iT = 1:size(UWND,4)     % Loop through time
+            for iL = 1:size(UWND,3)   % Loop through levels
+                % Interpolate to vent coordinates
+                u   = intVent(UWND, LON, LAT, [1, length(LAT)], [1, length(LON)], wind, iL, iT);
+                v	= intVent(VWND, LON, LAT, [1, length(LAT)], [1, length(LON)], wind, iL, iT);
+                z   = intVent(HGT, LON, LAT, [1, length(LAT)], [1, length(LON)], wind, iL, iT);
+                                
+                speed   = sqrt(u.^2+v.^2);                                  % Wind speed
+                angle   = atan2d(u,v);                                      % Wind direction
+                angle(angle<0) = 360+angle(angle<0);                        % Get rid of negative value
+                
+                stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
+            end
+            dlmwrite([out_path, num2str(tI, '%05i'), '.gen'], stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+            tI = tI+1;
+        end     
     end
-    delete(h);
-    
-    % Sorting files by time
-    [~, idxT]   = sort(datenum(stor_time));
-    stor_time   = stor_time(idxT,:);
-    stor_data   = stor_data(:,:,idxT);
-    
-    % Write profiles
-    h     = waitbar(0,'Writing profiles...');
-    for i = 1:size(stor_data, 3)
-        dlmwrite([out_path, num2str(i, '%05i'), '.gen'], flipud(stor_data(:,:,i)), 'delimiter', '\t', 'precision', 5);
-        waitbar(i/size(stor_data,3),h);
-    end
-    delete(h);
-    
+    display('Done!')
 end
 
-save([folder, filesep, 'wind.mat'], 'stor_data', 'stor_time');  % Save data for analyses
+save([folder, filesep, 'wind.mat'], 'wind', 'stor_data', 'stor_time');  % Save data for analyses
+
+
+function val = intVent(VAR, LON, LAT, latI, lonI, wind, iL, iT)
+val = interp2(repmat(LON(lonI(1):lonI(2))',length(latI(1):latI(2)),1), ...
+    repmat(LAT(latI(1):latI(2)), 1, length(lonI(1):lonI(2))),...
+    VAR(lonI(1):lonI(2),latI(1):latI(2), iL, iT), ...
+    str2double(wind.lon), str2double(wind.lat),...
+    wind.meth);

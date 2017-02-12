@@ -86,10 +86,9 @@ t.fig = figure(...
             t.m12 = uimenu(t.menu1, 'Label', 'Wind', 'Separator', 'on');
                 t.m111 = uimenu(t.m12, 'Label', 'Set ECMWF API key', 'callback', 'writeECMWFAPIKey');
                 t.m112 = uimenu(t.m12, 'Label', 'Install ECMWF libraries', 'callback', 'installECMWFAPI');
-                t.m113 = uimenu(t.m12, 'Label', 'Download NOAA wind', 'separator', 'on', 'callback', 'dwind_NOAA');
-                t.m114 = uimenu(t.m12, 'Label', 'Download ECMWF wind', 'callback', 'dwind_ECMWF');
-                t.m115 = uimenu(t.m12, 'Label', 'Process wind', 'Separator', 'on', 'callback', 'process_wind');
-                t.m116 = uimenu(t.m12, 'Label', 'Analyze wind', 'callback', 'analyze_wind');
+                t.m113 = uimenu(t.m12, 'Label', 'Download wind data', 'separator', 'on', 'callback', 'dwind');
+                t.m115 = uimenu(t.m12, 'Label', 'Process wind data', 'callback', 'process_wind');
+                t.m116 = uimenu(t.m12, 'Label', 'Analyze wind data', 'callback', 'analyze_wind');
             t.m13 = uimenu(t.menu1, 'Label', 'GVP', 'Separator', 'on', 'callback', 'gvp');
                 
         t.menu2 = uimenu(t.fig, 'Label', 'Scenarios');
