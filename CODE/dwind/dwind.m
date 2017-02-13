@@ -200,7 +200,8 @@ w.wind3_end = uicontrol(...
     'String', 'End');
 
 % Sets years
-yrs = arrayfun(@num2str, 1949:year(now), 'UniformOutput', false);
+yr  = datevec(now); yr = yr(1);
+yrs = arrayfun(@num2str, 1949:yr, 'UniformOutput', false);
 mts = arrayfun(@num2str, 1:12, 'UniformOutput', false);
 
 w.wind3_s_year = uicontrol(...
@@ -349,11 +350,11 @@ set_display
 function but_wind6_dataset(hObject,~)
 set(findobj('tag', 'year_start'), 'Value', 1);
 set(findobj('tag', 'year_end'), 'Value', 1);
-
+yr  = datevec(now); yr = yr(1);
 if get(hObject, 'Value') == 1       % Reanalysis 1
-    yrs = arrayfun(@num2str, 1949:year(now), 'UniformOutput', false);
+    yrs = arrayfun(@num2str, 1949:yr, 'UniformOutput', false);
 else          % Reanalysis 2 or ERA-Interim
-    yrs = arrayfun(@num2str, 1979:year(now), 'UniformOutput', false);
+    yrs = arrayfun(@num2str, 1979:yr, 'UniformOutput', false);
 end
 set(findobj('tag', 'year_start'), 'String', yrs);
 set(findobj('tag', 'year_end'), 'String', yrs);
