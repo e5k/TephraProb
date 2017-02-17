@@ -399,7 +399,10 @@ else
     interv = 2.5;
 end
 lat_vec    = -90:interv:90; 
-lon_vec    = -180:interv:180;
+lon_vec    = 0:interv:360-interv;
+
+% If the vent latitude is expressed as negative, correct it to degrees E
+if str2double(wind.lon) < 0; wind.lon = num2str(360+str2double(wind.lon)); end
 
 wind.lat_min = lat_vec(nnz(lat_vec<str2double(wind.lat)) - wind.int_ext + 1);
 wind.lat_max = lat_vec(nnz(lat_vec<str2double(wind.lat)) + wind.int_ext);
@@ -432,8 +435,7 @@ save([wind.folder, 'wind.mat'],'wind')
 %% DOWNLOAD DATA
 %% ERA-INTERIM
 if strcmp(wind.db, 'Interim')
-    
-    
+
     txt     = fileread('download_ECMWF_tmp.py');
     txt_new = strrep(txt, 'var_year_start', wind.yr_s);
     txt_new = strrep(txt_new, 'var_year_end', wind.yr_e);

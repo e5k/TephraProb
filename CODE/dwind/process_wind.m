@@ -82,7 +82,7 @@ if ~strcmp(wind.db, 'Interim')
         % Retrieve the extent
         if iY == str2double(wind.yr_s)
             LAT     = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'lat'); 
-            LON     = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'lon'); LON(LON>180) = LON(LON>180)-360;
+            LON     = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'lon'); %LON(LON>180) = LON(LON>180)-360;
             latI(1) = find(LAT == wind.lat_min);
             latI(2) = find(LAT == wind.lat_max);
             latI = fliplr(latI);
