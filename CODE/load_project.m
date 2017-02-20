@@ -37,7 +37,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function load_project
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end

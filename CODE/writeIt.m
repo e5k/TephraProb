@@ -36,7 +36,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function writeIt(A, filename)
 
-fid = fopen(filename, 'w');
+fid = fopen(filename, 'wt');
 line = size(A,1);
 
 for i=1:line

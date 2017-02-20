@@ -37,7 +37,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function gvp
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -136,16 +136,6 @@ gvp.type = uibuttongroup(...
         'BackgroundColor', [.25 .25 .25],...
         'ForegroundColor', [1 1 1],...
         'String', 'Cumulative');
-
-%     gvp.type_interval = uicontrol(...
-%         'style', 'radiobutton',...
-%         'parent', gvp.type,...
-%         'units', 'normalized',...
-%         'position', [.1 .345 .78 .17],...
-%         'BackgroundColor', [.25 .25 .25],...
-%         'ForegroundColor', [1 1 1],...
-%         'String', 'Interval');
-
 
 % VEI PANNEL
 gvp.VEI = uibuttongroup(...
@@ -255,7 +245,6 @@ gvp.evidence = uibuttongroup(...
         'String', 'Radiocarbon');
     
 % Bottom
-
 gvp.raw = uicontrol(...
         'parent', gvp.main,...
         'style', 'pushbutton',...
@@ -329,8 +318,6 @@ delete('tmp.html');
 count   = size(htmldata,1)-1;
 stor    = zeros(count, 5);
 
-
-
 for i = 1:count
     % Stor
         % 1:    Start year
@@ -349,31 +336,31 @@ for i = 1:count
     tmpS = htmldata{i+1,1};
     tmpD = str2double(regexp(tmpS, '\d+', 'Match'));
    
-    if length(tmpD) > 1 && isempty(regexp(tmpS, '&plusmn;')) && isempty(regexp(tmpS, 'BCE'))
+    if length(tmpD) > 1 && isempty(regexp(tmpS, '&plusmn;', 'once')) && isempty(regexp(tmpS, 'BCE', 'once'))
         stor(i,1) = tmpD(1);
-    elseif length(tmpD) > 1 && isempty(regexp(tmpS, '&plusmn;')) && ~isempty(regexp(tmpS, 'BCE'))
+    elseif length(tmpD) > 1 && isempty(regexp(tmpS, '&plusmn;', 'once')) && ~isempty(regexp(tmpS, 'BCE', 'once'))
         stor(i,1) = -tmpD(1);
-    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;'))  && isempty(regexp(tmpS, 'BCE')) && ~isempty(regexp(tmpS, 'years'))
+    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;', 'once'))  && isempty(regexp(tmpS, 'BCE', 'once')) && ~isempty(regexp(tmpS, 'years', 'once'))
         stor(i,1) = tmpD(1);
         stor(i,2) = tmpD(2);
-    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;'))  && ~isempty(regexp(tmpS, 'BCE')) && ~isempty(regexp(tmpS, 'years'))
-        stor(i,1) = -tmpD(1);
-        stor(i,2) = tmpD(2);
-    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;'))  && isempty(regexp(tmpS, 'BCE')) && isempty(regexp(tmpS, 'years'))
-        stor(i,1) = tmpD(1);
-        stor(i,2) = tmpD(2);
-    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;'))  && ~isempty(regexp(tmpS, 'BCE')) && isempty(regexp(tmpS, 'years'))
+    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;', 'once'))  && ~isempty(regexp(tmpS, 'BCE', 'once')) && ~isempty(regexp(tmpS, 'years', 'once'))
         stor(i,1) = -tmpD(1);
         stor(i,2) = tmpD(2);
-    elseif length(tmpD) == 1 && isempty(regexp(tmpS, 'BCE'))
+    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;', 'once'))  && isempty(regexp(tmpS, 'BCE', 'once')) && isempty(regexp(tmpS, 'years', 'once'))
         stor(i,1) = tmpD(1);
-    elseif length(tmpD) == 1 && ~isempty(regexp(tmpS, 'BCE'))
+        stor(i,2) = tmpD(2);
+    elseif length(tmpD) > 1 && ~isempty(regexp(tmpS, '&plusmn;', 'once'))  && ~isempty(regexp(tmpS, 'BCE', 'once')) && isempty(regexp(tmpS, 'years', 'once'))
+        stor(i,1) = -tmpD(1);
+        stor(i,2) = tmpD(2);
+    elseif length(tmpD) == 1 && isempty(regexp(tmpS, 'BCE', 'once'))
+        stor(i,1) = tmpD(1);
+    elseif length(tmpD) == 1 && ~isempty(regexp(tmpS, 'BCE', 'once'))
         stor(i,1) = -tmpD(1);
     end
     
     % Confirmed
     tmpS = htmldata{i+1,3};
-    if ~isempty(regexp(tmpS, 'Confirmed'))
+    if ~isempty(regexp(tmpS, 'Confirmed', 'once'))
         stor(i,3) = 1;
     end
     
@@ -392,11 +379,11 @@ for i = 1:count
     
     % Evidence
     tmpS = htmldata{i+1,5};
-    if ~isempty(regexp(tmpS, 'Historical'))
+    if ~isempty(regexp(tmpS, 'Historical', 'once'))
         stor(i,5) = 1;
-    elseif ~isempty(regexp(tmpS, 'Tephrochronology'))
+    elseif ~isempty(regexp(tmpS, 'Tephrochronology', 'once'))
         stor(i,5) = 2;
-    elseif ~isempty(regexp(tmpS, 'Radiocarbon'))
+    elseif ~isempty(regexp(tmpS, 'Radiocarbon', 'once'))
         stor(i,5) = 3;
     else
         stor(i,5) = 0;
@@ -485,7 +472,6 @@ elseif strcmp(get(get(gvp.evidence, 'SelectedObject'), 'String'), 'Radiocarbon')
     html = html(data(:,5) == 3, :);
 end
 
-
 % Check if there is a time constrain
 if ~isempty(time_lim)
     if ~isnan(str2double(time_lim{1}))
@@ -500,7 +486,6 @@ if ~isempty(time_lim)
         html = html(data(:,1) <= lim_rec, :);
     end
 end
-
 
 % Identifies target for plotting
 if strcmp(get(hObject, 'String'), 'Plot') || strcmp(get(hObject, 'String'), 'Probability')
@@ -626,7 +611,6 @@ for i = 1:nb
     count   = count+size(data(idx,1),1);
 end
 
-
 set(gca,...
     'XColor', clr, 'YColor', clr,  'FontSize', siz);
 
@@ -645,15 +629,13 @@ else
 end
 legend(pleg, leg, 'Location', 'NorthWest');
 
-
 % Export data
 function export_data(html)
-
 html = regexprep(html, '&nbsp;', '');
 html = regexprep(html, '&plusmn;', '±');
 
 [fl, pth]   = uiputfile('data_export.txt', 'Export data');
-fid         = fopen([pth, filesep, fl], 'w');
+fid         = fopen(fullfile(pth, fl), 'wt');
 form        = '%s\t%s\t%s\t%s\t%s\t%s\n';
 for i = 1:size(html,1)
     fprintf(fid, form, html{i,:});
@@ -662,7 +644,6 @@ fclose(fid);
 
 % Plot probability
 function plot_probability(data)
-
 global gvp trgt plt_src
 
 plt_src = 1;
@@ -705,13 +686,12 @@ datacursormode
 
 % Error bar
 function hh = errorbar_x(x, y, l,u,symbol)
-
-if min(size(x))==1,
+if min(size(x))==1
   npt = length(x);
   x = x(:);
   y = y(:);
-    if nargin > 2,
-        if ~ischar(l),  
+    if nargin > 2
+        if ~ischar(l)  
             l = l(:);
         end
         if nargin > 3

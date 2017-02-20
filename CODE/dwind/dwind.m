@@ -41,7 +41,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function dwind
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -371,26 +371,25 @@ if isempty(get(w.wind4_name, 'String')) || isempty(get(w.wind2_lon, 'String')) |
     return
 end
 
-
 yrs = findobj('tag', 'year_start');
 yrs = get(yrs, 'String');
 % Retrieve data and stores it in a structure
 wind = struct;
 
-wind.lat     =   get(w.wind2_lat, 'String');
-wind.lon     =   get(w.wind2_lon, 'String');
-wind.name    =   get(w.wind4_name, 'String');
+wind.lat     = get(w.wind2_lat, 'String');
+wind.lon     = get(w.wind2_lon, 'String');
+wind.name    = get(w.wind4_name, 'String');
 
-wind.yr_s    =   yrs{get(w.wind3_s_year, 'Value')};
-wind.yr_e    =   yrs{get(w.wind3_e_year, 'Value')};
-wind.mt_s    =   mts{get(w.wind3_s_month, 'Value')};
-wind.mt_e    =   mts{get(w.wind3_e_month, 'Value')};
+wind.yr_s    = yrs{get(w.wind3_s_year, 'Value')};
+wind.yr_e    = yrs{get(w.wind3_e_year, 'Value')};
+wind.mt_s    = mts{get(w.wind3_s_month, 'Value')};
+wind.mt_e    = mts{get(w.wind3_e_month, 'Value')};
 
 db           = {'Reanalysis1', 'Reanalysis2', 'Interim'};
-wind.db      =   db{get(w.wind6_dataset, 'Value')};
-wind.int_ext =   str2double(get(w.wind2_ext, 'String'));
-meth         =   {'Linear', 'Nearest', 'Pchip', 'Cubic', 'Spline'};
-wind.meth    =   meth{get(w.wind2_int, 'Value')};
+wind.db      = db{get(w.wind6_dataset, 'Value')};
+wind.int_ext = str2double(get(w.wind2_ext, 'String'));
+meth         = {'Linear', 'Nearest', 'Pchip', 'Cubic', 'Spline'};
+wind.meth    = meth{get(w.wind2_int, 'Value')};
 
 % Define extent
 if strcmp(wind.db, 'Interim')
@@ -410,7 +409,7 @@ wind.lat_max = lat_vec(nnz(lat_vec<str2double(wind.lat)) + wind.int_ext);
 wind.lon_min = lon_vec(nnz(lon_vec<str2double(wind.lon)) - wind.int_ext + 1);
 wind.lon_max = lon_vec(nnz(lon_vec<str2double(wind.lon)) + wind.int_ext);
 
-wind.folder  =   ['WIND', filesep, wind.name, filesep];
+wind.folder  = fullfile('WIND', wind.name);
 
 % Create folder
 if exist(wind.folder, 'dir') == 7
@@ -425,11 +424,10 @@ if exist(wind.folder, 'dir') == 7
 end
 
 mkdir(wind.folder);
-mkdir([wind.folder, filesep, 'nc', filesep]);
-mkdir([wind.folder, filesep, 'ascii', filesep]);
+mkdir(fullfile(wind.folder, 'nc'));
+mkdir(fullfile(wind.folder, 'ascii'));
 
-
-save([wind.folder, 'wind.mat'],'wind')
+save(fullfile(wind.folder, 'wind.mat'),'wind')
 
 
 %% DOWNLOAD DATA
@@ -493,7 +491,7 @@ else
     for iV = 1:length(varList)
         for iY = str2double(wind.yr_s):str2double(wind.yr_e)
             fl = [varList{iV}, '.', num2str(iY), '.nc'];
-            if exist([target_dir, fl], 'file');     % If the file exists
+            if exist([target_dir, fl], 'file')     % If the file exists
                 fprintf('\t%s already exists, skipping download...\n', fl)
             else                                                        % Else request ftp
                 fprintf('\tDownloading %s, please wait...\n', fl)
@@ -504,8 +502,7 @@ else
         end
         
     end
-    
-    display('Done!');
+    disp('Done!');
 end
 
 process_wind(wind)

@@ -36,7 +36,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function runT2
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -55,8 +55,6 @@ elseif length(dir([project.run_pth, 'GS/ALL/'])) == 2
     warndlg('No configuration file exist for this project. Please re-run the sampling of ESPs specifying the write_gs_files = 1');
     return
 end
-
-
 
 mod_pth = [pwd, filesep, 'MODEL', filesep, 'forward_src', filesep];
 
@@ -108,11 +106,9 @@ end
 
 function runit(run_pth, par, cores)
 
-
-
 % Read the T2_stor files, retrieve the commands and sets the number of
 % lines
-fid     = fopen([run_pth,'T2_stor.txt']);
+fid     = fopen([run_pth,'T2_stor.txt'], 'r');
 count   = 1;
 stor    = {};
 tline   = fgets(fid);
@@ -145,12 +141,9 @@ elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Segmentation fault','ONCE'));
     return  
 end
 
-
-
-
 % Loads the project file and test if the parallel option is selected
-fl = dir([run_pth, '*.mat']);
-load([run_pth, fl(1).name]);
+fl = dir(fullfile(run_pth, '*.mat'));
+load(fullfile(run_pth, fl(1).name));
 
 % Check one run and time it
 if par == 0
@@ -184,7 +177,6 @@ switch choice
     case 'Yes'
 end
 
-
 % If single core
 if par == 0
     for i = 1:count-1
@@ -216,7 +208,7 @@ else
     end
     
 end
-display('Modelling finished!');
+disp('Modelling finished!');
 
 function line_out = check_line(tline)
 
@@ -247,8 +239,6 @@ if ispc
     [s,e] = regexp(tline, './MODEL/tephra2-2012');
     tline(s:e) = [];
     line_out = [pathC, ' --login -c "/cygdrive/', pth_tmp, '/MODEL/./tephra2-2012.exe ', tline, '"'];
-    
-    
 else
     line_out = tline;
 end

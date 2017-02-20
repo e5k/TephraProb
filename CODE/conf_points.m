@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function conf_points
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -219,12 +219,12 @@ plot_google_map
 
 % Load button
 function cdp = but_load(~, ~, cdp)
-[flname, dirname] = uigetfile(['GRIDS', filesep, '*.points'], 'Select a .points file to load');
+[flname, dirname] = uigetfile(fullfile('GRID','*.points'), 'Select a .points file to load');
 
 if flname == 0
     return
 else
-    load([dirname, filesep, flname], '-mat');
+    load(fullfile(dirname, flname), '-mat');
 end
 
 set(cdp.points_table, 'Data', grid.points);
@@ -268,18 +268,17 @@ if exist(['GRID/', grd_name], 'dir') == 7
     % Handle response
     switch choice
         case 'Yes'
-            rmdir(['GRID/', grd_name, filesep], 's');
+            rmdir(fullfile('GRID', grd_name), 's');
             check = 1;
         case 'No'
-            check = 0;
             return
     end    
 end
 
 if check == 1
-    mkdir(['GRID/', grd_name, filesep]);
+    mkdir(fullfile('GRID', grd_name));
     % Write grid file
-    fid = fopen(['GRID/', grd_name, filesep, grd_name, '.utm'], 'w');
+    fid = fopen(fullfile('GRID', grd_name, [grd_name, '.utm']), 'wt');
     for i = 1:size(points,1)
         fprintf(fid, '%05.1f\t%06.1f\t%.0f\n', stor_grid(i,1), stor_grid(i,2), stor_grid(i,3));
     end
@@ -289,12 +288,9 @@ if check == 1
     grid.grd_name   = grd_name;
     grid.vent_zone  = vent_zone;
     grid.stor_points= stor_points;
-    save(['GRID/', grd_name, filesep, grd_name, '.points'], 'grid');
+    save(fullfile('GRID', grd_name, [grd_name, '.points']), 'grid');
     warndlg('Points successfully saved!');
 end
-
-
-
 
 % Delete row
 function cdp =  but_table_del(hObject, eventdata, cdp)

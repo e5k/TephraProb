@@ -39,7 +39,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function runProb
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -55,42 +55,35 @@ end
 if isfield(data, 'testrun') && isfield(data, 'long_lasting')   
 
     % Check run number
-    run_path        = ['RUNS/', data.run_name, filesep];
+    run_path        = fullfile('RUNS', data.run_name);
     if exist(run_path, 'dir')
         run_nb      = num2str(get_run_nb(run_path));
-        out_pth     = [run_path, run_nb, '/'];
+        out_pth     = fullfile(run_path, run_nb);
         mkdir(out_pth);
     else
-        run_nb       = 1;
-        out_pth = [run_path, num2str(run_nb), filesep];
+        run_nb      = 1;
+        out_pth     = fullfile(run_path, num2str(run_nb));
         mkdir(out_pth);
     end
     data.run_nb     = run_nb;   % Save run number to main struct
     data.run_type   = 'P';      % Save run type to main struct
 
     % Save run matrix
-    data = rmfield(data, 'testrun');
-    save([out_pth, data.run_name, '_', num2str(run_nb), '.mat'], 'data');
+    data            = rmfield(data, 'testrun');
+    save(fullfile(out_pth, [data.run_name, '_', num2str(run_nb), '.mat']), 'data');
     
     % Structure to save run detail
     stor_run = struct;
     home;
     
     % If using the Parallel Computing Toolbox
-%    if data.par == 1
-%         if verLessThan('matlab', '8.2')
-%             matlabpool(data.par_cpu); %#ok<DPOOL>
-%         else
-%             parpool(data.par_cpu);
-%         end
-%    end
 
     % Check if seasonality option is enable and wind preprocessing
     wind_vec_all    = datenum(data.wind_start):1/data.wind_per_day:(datenum(data.wind_start)+data.nb_wind/data.wind_per_day)-1/data.wind_per_day;     % Wind vector for the entire population
     
     if data.seasonality == 1 && data.constrain_eruption_date == 1
         data.seasonality = 0;
-        display(sprintf('You have enabled the seasonality and the constrain eruption date options, which does not really make sense!\nThe seasonality option was disabled'));
+        fprintf('You have enabled the seasonality and the constrain eruption date options, which does not really make sense!\nThe seasonality option was disabled\n');
     end
     
     if data.seasonality == 1                                                                            % If seasonality option enabled
@@ -128,11 +121,10 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
     % _______________________________________________________________________
 
     % General storage file fed to the run_T2 function
-    fid_T2 = fopen([out_pth, 'T2_stor', '.txt'], 'w');
+    fid_T2 = fopen(fullfile(out_pth, 'T2_stor.txt'), 'wt');
         
     for seas = 1:length(seas_str)
         fprintf('Run for season %s\n', seas_str{seas});
-
         fprintf('\t Creating storage matrices and output folders\n');
         % Storage for all occurrences of all runs
         mass_stor_tot       = zeros(data.nb_runs, 1);   % Mass storage matrix
@@ -150,15 +142,15 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         count_run       = 0;        % Counter of validated runs
 
         % Output folders
-        mkdir([out_pth, 'OUT/', seas_str{seas}, '/']);
-        mkdir([out_pth, 'CONF/', seas_str{seas}, '/']);
-        mkdir([out_pth, 'GS/', seas_str{seas}, '/']);
-        mkdir([out_pth, 'LOG/', seas_str{seas}, '/']);
-        mkdir([out_pth, 'FIG/', seas_str{seas}, '/']);
-        mkdir([out_pth, 'SUM/', seas_str{seas}, '/']);
-        mkdir([out_pth, 'CURVES/', seas_str{seas}, '/']);
-        if ~exist([out_pth, 'PROB/'], 'dir')
-            mkdir([out_pth, 'PROB/']);
+        mkdir(fullfile(out_pth, 'OUT', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'CONF', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'GS', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'LOG', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'FIG', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'SUM', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'CURVES', seas_str{seas}));
+        if ~exist(fullfile(out_pth, 'PROB'), 'dir')
+            mkdir(fullfile(out_pth, 'PROB'));
         end
 
         % Get the wind vector for the season considered
@@ -174,12 +166,12 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         wb = waitbar(0,sprintf('Creating ESP... Press Ctrl+C to interrupt'));
         for i = 1:data.nb_runs 
             % Output folders for each run i
-            mkdir([out_pth, 'OUT/', seas_str{seas}, '/', num2str(i)]);
+            mkdir(fullfile(out_pth, 'OUT', seas_str{seas}, num2str(i)));
             if data.write_conf == 1
-                mkdir([out_pth, 'CONF/', seas_str{seas}, '/', num2str(i)]);
+                mkdir(fullfile(out_pth, 'CONF', seas_str{seas}, num2str(i)));
             end
             if data.write_fig_sep == 1
-                mkdir([out_pth, 'FIG/', seas_str{seas}, '/', num2str(i)]);
+                mkdir(fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i)));
             end
 
             test_run    = 0;                  % Check variable (0 if run is rejected, 1 if validated)
@@ -255,7 +247,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
 
                 % MER and mass calculation
                 for j = 1:nb_sim      
-                    wind_prof   = load([data.wind_pth, num2str(wind_vec(j), '%05i'), '.gen']);                                   % Loads wind profile
+                    wind_prof   = load(fullfile(data.wind_pth, [num2str(wind_vec(j), '%05i'), '.gen']));                                   % Loads wind profile
                     
                     % Get the closest value to tropopause (assumed 15 km asl over Iceland)
                     level       = find(abs(wind_prof(:,1)-data.trop_height) == min(abs(wind_prof(:,1)-data.trop_height)));
@@ -328,12 +320,12 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
 
                     % Writes the TGSD file
                     if data.write_gs == 1
-                        dlmwrite([out_pth, 'GS/', seas_str{seas}, '/', num2str(i, '%04d'), '.gsd'], [gs(:,1), gs_cum], 'delimiter', '\t'); 
+                        dlmwrite(fullfile(out_pth, 'GS', seas_str{seas}, [num2str(i, '%04d'), '.gsd']), [gs(:,1), gs_cum], 'delimiter', '\t'); 
                     end
 
                     % Write log file for this run
                     if data.write_log_sep == 1
-                        fid     = fopen([out_pth, 'LOG/', seas_str{seas}, '/', num2str(i, '%04i'), '.txt'], 'w');
+                        fid     = fopen(fullfile(out_pth, 'LOG', seas_str{seas}, [num2str(i, '%04i'), '.txt']), 'wt');
                         fprintf(fid, 'Log file for run number %d\t%s\n%s\n____________________________________\n\n',...
                             i, data.run_name, datestr(now));
                         fprintf(fid, 'Eruption date:\t%s \nEruption duration:\t%.2f h\nNumber of simulations:\t%i\nTotal mass:\t%d kg\n\nTGSD\nMedian:\t%.1f\nSigma:\t%.1f\nAggregation coefficient:\t%.1f\n\n\n',...
@@ -375,17 +367,19 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     if data.write_fig_sep == 1
                         % Plume height
                         h = figure('Visible', 'off'); hist(ht_tmp,15); colormap([.8 .8 .8]);  title('Plume height','FontWeight','bold'); xlabel('Height (m asl)'); ylabel('Frequency');
-                        saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', num2str(i), filesep, 'plume_height.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', num2str(i), filesep, 'plume_height.fig']); close(h);
+                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'plume_height.eps')); 
+                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'plume_height.fig')); close(h);
                         % Mass
                         h = figure('Visible', 'off'); hist(mass_tmp,15); colormap([.8 .8 .8]);  title('Mass','FontWeight','bold'); xlabel('Mass (kg)'); ylabel('Frequency');
-                        saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', num2str(i), filesep, 'mass.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', num2str(i), filesep, 'mass.fig']); close(h);
+                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'mass.eps')); 
+                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'mass.fig')); close(h);
                     end
 
                     % Write configuration files
                     if data.write_conf == 1
                         for j = 1:nb_sim    
                             % Write CONF file for TEPHRA2
-                            fid = fopen([out_pth, 'CONF/', seas_str{seas}, '/', num2str(i), filesep, num2str(j,'%04d'), '.conf'], 'w');
+                            fid = fopen(fullfile(out_pth, 'CONF', seas_str{seas}, num2str(i), [num2str(j,'%04d'), '.conf']), 'wt');
                                 fprintf(fid,...
                                     'PLUME_HEIGHT\t%d\nERUPTION_MASS\t%d\nVENT_EASTING\t%d\nVENT_NORTHING\t%d\nVENT_ELEVATION\t%d\nEDDY_CONST\t%d\nDIFFUSION_COEFFICIENT\t%d\nFALL_TIME_THRESHOLD\t%d\nLITHIC_DENSITY\t%d\nPUMICE_DENSITY\t%d\nCOL_STEPS\t%d\nPART_STEPS\t%d\nPLUME_MODEL\t%d\nALPHA\t%d\nBETA\t%d\n',...
                                     ht_tmp(j), mass_tmp(j),...
@@ -397,10 +391,10 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
 
                             % T2_Stor prints the entire command for T2
                             tmp_model= ['./', 'MODEL/tephra2-2012']; 
-                            tmp_conf = [out_pth, 'CONF/', seas_str{seas}, '/', num2str(i), '/', num2str(j, '%04d'), '.conf'] ;
-                            tmp_wind = [data.wind_pth, num2str(wind_vec(j), '%05d'), '.gen'];
-                            tmp_gs   = [out_pth, 'GS/', seas_str{seas}, '/', num2str(i, '%04d'), '.gsd'];
-                            tmp_out  = [out_pth, 'OUT/', seas_str{seas}, '/', num2str(i), '/', data.out_name, '_', num2str(j, '%04d'), '.out'] ;
+                            tmp_conf = fullfile(out_pth, 'CONF', seas_str{seas}, num2str(i), [num2str(j, '%04d'), '.conf']);
+                            tmp_wind = fullfile(data.wind_pth, [num2str(wind_vec(j), '%05d'), '.gen']);
+                            tmp_gs   = fullfile(out_pth, 'GS', seas_str{seas}, [num2str(i, '%04d'), '.gsd']);
+                            tmp_out  = fullfile(out_pth, 'OUT', seas_str{seas}, num2str(i), [data.out_name, '_', num2str(j, '%04d'), '.out']);
                             fprintf(fid_T2, '%s %s %s %s %s > %s\n', tmp_model, tmp_conf, data.grid_pth, tmp_wind, tmp_gs, tmp_out);
                         end
                     end
@@ -414,45 +408,54 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
 
         % Save run matrix
         data.stor = stor_run;
-        save([out_pth, data.run_name, '_', num2str(run_nb), '.mat'], 'data');
+        save(fullfile(out_pth, [data.run_name, '_', num2str(run_nb), '.mat']), 'data');
 
         % Figures for the entire run         
         if data.write_fig_all == 1
             fprintf('\t Write all figures\n');
             % Plume height
             h = figure('Visible', 'off'); hist(height_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Plume height\n%d occurrences', length(height_stor_tot)),'FontWeight','bold'); xlabel('Height (m asl)'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'plume_height.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'plume_height.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'plume_height.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'plume_height.fig')); close(h);
             % Mass (of each run)
             h = figure('Visible', 'off'); hist(mass_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Total mass per run\n%d occurrences', length(mass_stor_tot)),'FontWeight','bold'); xlabel('Mass (kg)'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'mass_run.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'mass_run.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_run.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_run.fig')); close(h);
             % Mass (of each simulation)
             h = figure('Visible', 'off'); hist(mass_stor_tot_all,15); colormap([.8 .8 .8]);  title(sprintf('Total mass per simulation\n%d occurrences', length(mass_stor_tot_all)),'FontWeight','bold'); xlabel('Mass (kg)'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'mass_sim.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'mass_sim.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_sim.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_sim.fig')); close(h);
             % Mass eruption rate
             h = figure('Visible', 'off'); hist(mer_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Mass eruption rate\n%d occurrences', length(mer_stor_tot)),'FontWeight','bold'); xlabel('MER (kg/s)'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'mer.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'mer.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mer.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mer.fig')); close(h);
             % Start date
             h = figure('Visible', 'off'); hist(date_stor_tot, round(data.nb_wind/4/365)*12); colormap([.8 .8 .8]); datetick('x', 'mm/YY'); title(sprintf('Start date\n%d occurrences', length(date_stor_tot)),'FontWeight','bold'); xlabel('Date (per month)'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'date.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'date.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'date.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'date.fig')); close(h);
             % Median phi
             h = figure('Visible', 'off'); hist(med_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Median phi\n%d occurrences', length(med_stor_tot)),'FontWeight','bold'); xlabel('Median phi'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'median.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'median.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'median.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'median.fig')); close(h);
             % Sigma phi
             h = figure('Visible', 'off'); hist(std_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Sigma phi\n%d occurrences', length(std_stor_tot)),'FontWeight','bold'); xlabel('Sigma phi'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'sigma.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'sigma.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'sigma.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'sigma.fig')); close(h);
             % Sigma phi
             h = figure('Visible', 'off'); hist(agg_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Aggregation coefficient\n%d occurrences', length(agg_stor_tot)),'FontWeight','bold'); xlabel('Aggregation coefficient'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'aggregation.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'aggregation.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'aggregation.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'aggregation.fig')); close(h);
             % Duration
             h = figure('Visible', 'off'); hist(dur_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Eruption Duration\n%d occurrences', length(agg_stor_tot)),'FontWeight','bold'); xlabel('Duration (h)'); ylabel('Frequency');
-            saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'duration.eps']); saveas(h, [out_pth, 'FIG/', seas_str{seas}, '/', 'duration.fig']); close(h);
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'duration.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'duration.fig')); close(h);
         end
 
         % Write the log file for all runs
         if data.write_log_all == 1
             fprintf('\t Write log file\n');
             % Header
-            fid = fopen([out_pth, 'LOG/', seas_str{seas}, '/', '_LOG_ALL.txt'], 'w');
+            fid = fopen(fullfile(out_pth, 'LOG', seas_str{seas}, '_LOG_ALL.txt'), 'wt');
             fprintf(fid, 'Log file for all runs \n%s\n____________________________________\n\n',...
                 datestr(now));
 
@@ -502,16 +505,8 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
 
     % Close access to file
     fclose(fid_T2);
-    display(sprintf('\nSampling of Eruption Source Parameters finished!'));
-    
-    % Close the parpool
-%     if data.par == 1
-%         if verLessThan('matlab', '8.2')
-%             matlabpool close; %#ok<DPOOL>
-%         else
-%             delete(gcp);
-%         end
-%     end
+    fprintf('\nSampling of Eruption Source Parameters finished!\n');
+
 end
 
 
@@ -520,7 +515,7 @@ function state = prepare_data(mode)
 % Mode: 0: New run
 %       1: Load run
 global t
-load('VAR/tephraProb.mat');                     % Load the description of each variable -> tab
+load(fullfile('VAR','tephraProb.mat'));          % Load the description of each variable -> tab
 if mode == 1                                    % If in load mode
     uiopen('*.mat');                            % Load previous run -> data
     if ~exist('data', 'var')

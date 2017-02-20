@@ -37,7 +37,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function conf_grid
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -461,19 +461,18 @@ set(h.grd_eq_panel,'SelectionChangeFcn',{@UTM_SelectionChangeFcn});
 set_display
 
 
-
 function but_grd_next(hObject, eventdata)
 global h
 
 if check_values == 1
     go = 1;
-    if exist(get(h.grd_grid_name, 'String'), 'dir')
+    if exist(fullfile('GRID', get(h.grd_grid_name, 'String')), 'dir')
         choice = questdlg('This name already exists. Overwrite?','','Yes','No','No');
         switch choice
             case 'No'
                 go = 0;
             case 'Yes'
-                rmdir(['OUT', filesep, get(h.grd_grid_name, 'String')], 's');
+                rmdir(fullfile('GRID', get(h.grd_grid_name, 'String')), 's');
                 go = 1;
         end
     end
@@ -488,7 +487,7 @@ end
     
     
 % Check if crosses UTM zones and/or equator
-function UTM_SelectionChangeFcn(hObject, eventdata)
+function UTM_SelectionChangeFcn(hObject, ~)
 global h
 
 % Sets the display of UTM zones textboxes
@@ -545,7 +544,7 @@ end
 guidata(hObject, h);
 
 % Opens the manage grid panel
-function manage_grid(hObject, eventdata)
+function manage_grid(hObject, ~)
 global h
 
 [fl, pth] = uigetfile('*.mat');
@@ -553,7 +552,7 @@ global h
 if fl == 0
     return
 else
-    load([pth,fl]);
+    load(fullfile(pth,fl));
 end
 
 % Updates fields
@@ -804,8 +803,8 @@ axis equal
 
 function write_matrix(tmp, lat, lon, utm, utmx, utmy, dat)
 % Saving data
-mkdir(['GRID/', filesep, tmp.name]);
-out_name = ['GRID', filesep, tmp.name, filesep, tmp.name];
+mkdir(fullfile('GRID', tmp.name));
+out_name = fullfile('GRID',tmp.name,tmp.name);
 wb = waitbar(0,'Writing grid...');
 save([out_name, '.mat'], 'tmp');
 waitbar(1 / 7);

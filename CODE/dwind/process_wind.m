@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function process_wind(varargin)
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -53,10 +53,10 @@ else
     wind = varargin{1};
 end
 
-folder  = [wind.folder];
+folder  = wind.folder;
 
-in_path = [folder, 'nc', filesep];     % Set main path for nc files
-out_path= [folder, 'ascii', filesep];    % Set main path for generated profiles
+in_path = fullfile(folder, 'nc');     % Set main path for nc files
+out_path= fullfile(folder, 'ascii');    % Set main path for generated profiles
 
 date_start  = datenum([str2double(wind.yr_s), str2double(wind.mt_s), 1, 0, 0, 0]);
 date_end    = datenum([str2double(wind.yr_e), str2double(wind.mt_e), eomday(str2double(wind.yr_e), str2double(wind.mt_e)), 18, 0, 0]);
@@ -78,7 +78,7 @@ if ~strcmp(wind.db, 'Interim')
     
     % Read nc files
     for iY = str2double(wind.yr_s):str2double(wind.yr_e)      % Loop through years
-        display(sprintf('Reading year %4.0f', iY))
+        fprintf('Reading year %4.0f\n', iY)
         % Retrieve the extent
         if iY == str2double(wind.yr_s)
             LAT     = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'lat'); 
@@ -93,18 +93,18 @@ if ~strcmp(wind.db, 'Interim')
         TIME = datevec(datenum([1800,1,1,0,0,0])+(ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'time')./24));
         
         % Read NetCDF files
-        display(sprintf('\tReading uwind'))
+        fprintf('\tReading uwind\n')
         UWND = ncread([in_path, 'uwnd.', num2str(iY), '.nc'], 'uwnd');
-        display(sprintf('\tReading vwind'))
+        fprintf('\tReading vwind\n')
         VWND = ncread([in_path, 'vwnd.', num2str(iY), '.nc'], 'vwnd');      
-        display(sprintf('\tReading geopotential height'))
+        fprintf('\tReading geopotential height\n')
         HGT = ncread([in_path, 'hgt.', num2str(iY), '.nc'], 'hgt');
         
         % Find the intersection between time vector of the requested
         % dataset and the NC file
         [~,~,timeI] = intersect(datenum(stor_time),datenum(TIME));
         
-        display(sprintf('\tInterpolating and writing ascii files'))
+        fprintf('\tInterpolating and writing ascii files\n')
         for iT = 1:length(timeI)
             for iL = 1:17
                 % Interpolate to vent coordinates
@@ -118,25 +118,13 @@ if ~strcmp(wind.db, 'Interim')
                 
                 stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
             end
-            dlmwrite([out_path, num2str(iT, '%05i'), '.gen'], stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+            dlmwrite(fullfile(out_path, [num2str(iT, '%05i'), '.gen']), stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
             tI = tI+1;
         end                                      
     end
-    display('Done!')
+    disp('Done!')
 % Case ECMWF ERA-Interim
-else
-    
-%     % Dialog box to input vent coordinates
-%     vent        = load([folder,'vent'], '-mat');
-%     vent        = vent.vent;
-%     %coor        = inputdlg({'Vent latitude:', 'Vent longitude:'}, 'Vent coordinates', 1);
-%     lat         = str2double(vent.lat);     % Retrieve vent latitude
-%     lon         = str2double(vent.lon);     % Retrieve vent longitude
-%     % Assures longitude is expressed as E
-%     if lon < 0
-%         lon = 360+lon;
-%     end
-    
+else   
     % Set storage matrices
     stor_data   = zeros(length(37), 3, length(stor_time));           % Main storage matrix
     
@@ -148,15 +136,15 @@ else
         nc = [num2str(iF, '%05.0f'), '_', datestr([T(iF,:), 1, zeros(1,3)], 'mmm'), '_', num2str(T(iF,1)), '.nc'];
         
         % Read NetCDF files
-        display(sprintf('Reading file %s', nc))
-        HGT       = ncread([in_path, nc], 'z')/9.80665;
-        UWND      = ncread([in_path, nc], 'u'); 
-        VWND      = ncread([in_path, nc], 'v'); 
+        fprintf('Reading file %s\n', nc)
+        HGT       = ncread(fullfile(in_path, nc), 'z')/9.80665;
+        UWND      = ncread(fullfile(in_path, nc), 'u'); 
+        VWND      = ncread(fullfile(in_path, nc), 'v'); 
         
-        LAT       = ncread([in_path, nc], 'latitude');
-        LON       = ncread([in_path, nc], 'longitude'); LON(LON>180) = LON(LON>180)-360;
+        LAT       = ncread(fullfile(in_path, nc), 'latitude');
+        LON       = ncread(fullfile(in_path, nc), 'longitude'); LON(LON>180) = LON(LON>180)-360;
                
-        display(sprintf('\tInterpolating and writing ascii files'))
+        fprintf('\tInterpolating and writing ascii files\n')
         for iT = 1:size(UWND,4)     % Loop through time
             for iL = 1:size(UWND,3)   % Loop through levels
                 % Interpolate to vent coordinates
@@ -170,14 +158,14 @@ else
                 
                 stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
             end
-            dlmwrite([out_path, num2str(tI, '%05i'), '.gen'], stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+            dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
             tI = tI+1;
         end     
     end
-    display('Done!')
+    disp('Done!')
 end
 
-save([folder, filesep, 'wind.mat'], 'wind', 'stor_data', 'stor_time');  % Save data for analyses
+save(fullfile(folder,'wind.mat'), 'wind', 'stor_data', 'stor_time');        % Save data for analyses
 
 
 function val = intVent(VAR, LON, LAT, latI, lonI, wind, iL, iT)

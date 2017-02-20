@@ -35,10 +35,9 @@ TephraProb is free software: you can redistribute it and/or modify
     along with TephraProb.  If not, see <http://www.gnu.org/licenses/>.
 %}
 
-
 function get_prefs
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -67,7 +66,6 @@ p.pan = uipanel(...
     'ForegroundColor', [.9 .5 0],...
     'HighlightColor', [.9 .5 0],...
     'BorderType', 'line');
-
 
     p.pan_prob = uipanel(...
         'Parent', p.pan,...
@@ -118,8 +116,6 @@ p.pan = uipanel(...
             'ForegroundColor', [1 1 1],...
             'BackgroundColor', [.35 .35 .35],...
             'Tooltip', 'Enter comma delimited probability thresholds');
-
-
         
 p.pan_map = uipanel(...
     'Parent', p.pan,...
@@ -130,8 +126,6 @@ p.pan_map = uipanel(...
     'HighlightColor', [.3 .3 .3],...
     'Title', 'Map display',...
     'BorderType', 'line');
-
-
 
         p.prob_ctr_txt = uicontrol(...
             'parent', p.pan_map,...
@@ -311,7 +305,7 @@ prefs.maps.scale_pim    = get(p.pim_scale, 'Value');
 
 prefs.maps.plot_extent  = get(p.plot_extent, 'Value');
 
-save(['CODE', filesep, 'VAR', filesep, 'prefs.mat'], 'prefs');
+save(fullfile('CODE', 'VAR', 'prefs.mat'), 'prefs');
 
 close(gcbf)
 
@@ -321,7 +315,7 @@ parse_data('prefs_default')
 function parse_data(file)
 global p
 
-load(['CODE', filesep, 'VAR', filesep, file]);
+load(fullfile('CODE', 'VAR', file));
 
 % Prob calculations - Mass threshold
 tmp = sprintf('%.2f,' , prefs.prob.mass_thresh);

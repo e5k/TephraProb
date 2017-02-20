@@ -38,7 +38,7 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function hazCurve_maker
 % Check that you are located in the correct folder!
-if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
@@ -49,12 +49,14 @@ if project.run_pth == -1
 end
 
 % Check if seasonality was activated
-if isdir([project.run_pth, 'SUM', filesep, 'rainy'])
+if isdir(fullfile(project.run_pth, 'SUM', 'rainy'))
     runs = {'all', 'dry', 'rainy'};
-elseif isdir([project.run_pth, 'SUM', filesep, 'all'])
+elseif isdir(fullfile(project.run_pth, 'SUM', 'all'))
     runs = {'all'};
-else
-    errordlg('No output file found', ' ');
+end
+
+if isempty(dir(fullfile(project.run_pth, 'OUT', 'all', '1', '*.out')))    
+    errordlg('No output file found. Did you already run the model?', ' ');
     return
 end
 
@@ -63,7 +65,7 @@ make_curves(project.run_pth, runs, project.run_name)
 function make_curves(run_pth, runs, run_name)
 
 if ~exist('CURVES', 'dir')
-    mkdir('CURVES/')
+    mkdir('CURVES')
 end
 
 coor    = load_file;
@@ -75,15 +77,15 @@ points  = coor.stor_points;
 
 
 for iR = 1:length(runs)
-    display(sprintf('Season:\t%s', runs{iR}))
-    files       = dir([run_pth, 'SUM', filesep, runs{iR}, filesep, '*.out']);
+    fprintf('Season:\t%s\n', runs{iR})
+    files       = dir(fullfile(run_pth, 'SUM', runs{iR},'*.out'));
     nb_files    = 0;
     
     stor = [];
        
     h = waitbar(0,'Reading files...');
     for k=1:size(files, 1) 
-        fl = load([run_pth, 'SUM', filesep, runs{iR}, filesep, files(k).name]);
+        fl = load(fullfile(run_pth, 'SUM', runs{iR}, files(k).name));
         if ~isempty(fl)
             stor(:,:,k) = fl;
             nb_files    = nb_files+1;
@@ -92,9 +94,9 @@ for iR = 1:length(runs)
     end
     close(h);
     
-    display('Creating hazard curves')
+    disp('Creating hazard curves')
     for j = 1:size(points,1)
-        display(sprintf('\t %s', points{j,1}));
+        fprintf('\t %s\n', points{j,1});
         
         % Locate the line in the output tephra files corresponding to the location coordinates
         [~, idxtmpx]     = min(abs(fl(:,1)-points{j,2}));
@@ -129,17 +131,15 @@ for iR = 1:length(runs)
             prob_vec(k) = prb./nb_files*100;    
             k = k+1;
         end
-        %dlmwrite([run_pth, 'CURVES', filesep, coor{1}{j}, '_', runs{iR}, '.out'], [mass_vec', prob_vec], 'delimiter', '\t');
-        dlmwrite(['CURVES', filesep, points{j,1}, '_',  run_name, '_', runs{iR}, '.out'], [mass_vec', prob_vec], 'delimiter', '\t');
+        dlmwrite(fullfile('CURVES', [points{j,1}, '_',  run_name, '_', runs{iR}, '.out']), [mass_vec', prob_vec], 'delimiter', '\t');
     end
 end
         
-
 function C = load_file
 
 [FileName,PathName] = uigetfile('*.points','Select the .points file with the coordinates');
 if FileName == 0
     C = 0;
 else
-    C = load([PathName, filesep, FileName], '-mat');
+    C = load(fullfile(PathName, FileName), '-mat');
 end
