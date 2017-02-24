@@ -584,49 +584,58 @@ else
     end 
 end
 
-sel_val = get(gvp.VEI_table, 'Value');
-sel_str = get(gvp.VEI_table, 'String');
-
-
 axes('Parent', prnt, 'Position', pos); 
 hold on;
 
-vei     = unique(data(:,4));
-nb      = length(vei);
-cmap    = linspecer(nb);
+vei     = unique(data(:,4));    % Selected VEI
+nb      = length(vei);          % Number of VEI classes
+cmap    = ...
+    [0.5142    0.7695    0.7258
+    0.9300    0.8644    0.4048
+    0.6929    0.6784    0.7951
+    0.9154    0.4668    0.4158
+    0.4668    0.6455    0.7695
+    0.9227    0.6565    0.3574
+    0.6528    0.8096    0.3829
+    0.6856    0.4668    0.6893
+    0.7914    0.7914    0.7914
+    0.7440    0.8571    0.7185];
+
+leg     = cell(length(vei),1);  % Legend string array
+pleg    = zeros(size(vei));     % Array containing the handles to the VEI classes to plot
 
 data    = sortrows(data,1);
 y       = 1:size(data,1);
 
+% Start by plotting the error
 p1      = errorbar_x(data(:,1), y(:), data(:,2), data(:,2), '.k');
 set(p1,'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k', 'MarkerSize', 1);
 
-pleg  = zeros(size(vei));
+% Plot each VEI separately
 count = 1;
 for i = 1:nb
     idx     = find(data(:,4)==vei(i));   
     p2      = scatter(data(idx,1),y(idx),40,data(idx,4), 'fill');
-    set(p2, 'MarkerEdgeColor', 'k', 'MarkerFaceColor', cmap(i,:));
+    set(p2, 'MarkerEdgeColor', 'k', 'MarkerFaceColor', cmap(vei(i)+1,:));
     pleg(i) = p2;   % Append handle for legend plotting
     count   = count+size(data(idx,1),1);
+    
+    % Setup legend
+    if vei(i) == 9
+        leg{i} = 'Undefined';
+    elseif vei(i) == 10
+        leg{i} = 'Other';
+    else
+        leg{i} = ['VEI ', num2str(vei(i))];
+    end
 end
 
 set(gca,...
     'XColor', clr, 'YColor', clr,  'FontSize', siz);
-
 title([num2str(length(data(:,4))), ' events'], 'Color', clr);
 ylabel('Cumulative number of eruptions');
 xlabel('Time (years)');
 
-% Prepare legend
-leg = cell(length(sel_val),1);
-if strcmp(sel_str{sel_val(1)}, 'All')
-    leg = sel_str(2:end);
-else
-    for i = 1:length(sel_val)
-        leg{i} = sel_str{sel_val(i)};
-    end
-end
 legend(pleg, leg, 'Location', 'NorthWest');
 
 % Export data

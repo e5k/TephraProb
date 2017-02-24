@@ -124,19 +124,19 @@ fclose(fid);
 
 % Check if inputs are good for the model
 [stat,cmdout] = system(stor{1});
-if stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open wind file','ONCE'));
+if stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open wind file','ONCE'))
     errordlg('Tephra2 cannot access the wind files. Check that the path specified in the runProb function is correct and try again.', ' ');
     return
-elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open points','ONCE'));
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open points','ONCE'))
     errordlg('Tephra2 cannot access the calculation points file. Check that the path specified in the runProb function is correct and try again.', ' ');
     return
-elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open grain file','ONCE'));
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open grain file','ONCE'))
     errordlg('Tephra2 cannot access the TGSD file. Check that the path specified in the runProb function is correct and try again.', ' ');
     return  
-elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open configuration file','ONCE'));
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Cannot open configuration file','ONCE'))
     errordlg('Tephra2 cannot access the configuration file. Check that the path specified in the runProb function is correct and try again.', ' ');
     return  
-elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Segmentation fault','ONCE'));
+elseif stat ~= 0 && ~isempty(regexp(cmdout, 'Segmentation fault','ONCE'))
     errordlg('Tephra2 returned a segmentation fault, which most likely means that there is something corrupted in your input files. Make sure all parameters specified in the runProb function are correct and try again.', ' ');
     return  
 end
@@ -150,7 +150,7 @@ if par == 0
     divider = 1;
 elseif par == 1
     divider = cores;
-end;
+end
 
 tic;
 system(stor{1});
