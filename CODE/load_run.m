@@ -34,7 +34,6 @@ TephraProb is free software: you can redistribute it and/or modify
     along with TephraProb.  If not, see <http://www.gnu.org/licenses/>.
 %}
 
-
 function project = load_run
 
 % If tmp file exist, then load it
@@ -61,29 +60,12 @@ else
         load(run_pth);
 
         % Get grid
-        grd_tmp     = data.grid_pth;
-
-        idx_slash   = strfind(grd_tmp, '/');
-        idx_bslash  = strfind(grd_tmp, '\');
-        idx_dot     = strfind(grd_tmp, '.');
-
-        if isempty(idx_slash)
-            idx     = idx_bslash(end);
-        elseif isempty(idx_bslash)
-            idx     = idx_slash(end);
-        else
-            if max(idx_slash) > max(idx_bslash)
-                idx = idx_slash(end);
-            else
-                idx = idx_bslash(end);
-            end
-        end
+        project.grd_pth     = fileparts(data.grid_pth);
         project.vent.east   = data.vent_easting;
         project.vent.north  = data.vent_northing;
         project.vent.zone   = data.vent_zone;
 
-        project.grd_pth     = grd_tmp(idx+1:idx_dot(end)-1);
-        % Check grid
+        % Check grid or points
         if length(dir(['GRID/', project.grd_pth, filesep, '*.dat'])) == 5
             project.grd_type = 0;
         else
