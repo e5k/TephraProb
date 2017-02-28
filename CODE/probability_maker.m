@@ -83,10 +83,13 @@ function sum_files(run_pth, grd_pth, runs, grd_type)
 disp('Summing files...');
 
 for iR = 1:length(runs)
-
-    folds = dir([run_pth, 'OUT', filesep, runs{iR}, filesep]);
-    count = 1;
-    wb = waitbar(0, sprintf('Summing files for season: %s - %.0f/%.0f\n', runs{iR}, iR, length(runs)));
+    folds   = dir(fullfile(run_pth, 'OUT', runs{iR}));
+    
+    % Check output folders
+    if length(folds) <= 2; errordlg('No ouput file was found. Did you run Tephra2?'); return; end
+    
+    count   = 1;
+    wb      = waitbar(0, sprintf('Summing files for season: %s - %.0f/%.0f\n', runs{iR}, iR, length(runs)));
     for j = 3:size(folds,1)
         if strcmp(folds(j).name, '.') || strcmp(folds(j).name, '..') || strcmp(folds(j).name, '.DS_Store')
         else

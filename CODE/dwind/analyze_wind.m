@@ -637,7 +637,7 @@ end
 
 cmap = linspecer(size(data,3));
 
-w2.s1 = subplot(1,2,1, 'units', 'normalized', 'Parent', prnt, 'position', pos1, 'XColor', clr, 'YColor', clr, 'FontSize', siz); 
+w2.s1 = subplot('position', pos1, 'units', 'normalized', 'Parent', prnt, 'XColor', clr, 'YColor', clr, 'FontSize', siz); 
 title('Wind velocity','FontWeight','Bold', 'Color', clr, 'FontSize', siz);
 xlabel('Velocity (m/s)', 'Color', clr, 'FontSize', siz);
 ylabel('Height (km)', 'Color', clr, 'FontSize', siz);
@@ -645,7 +645,7 @@ axis([0 40 YMIN YMAX]);
 set(w2.s1, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
 hold on
 
-w2.s2 = subplot(1,2,2, 'units', 'normalized', 'Parent',prnt, 'position', pos2, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
+w2.s2 = subplot('position', pos2, 'units', 'normalized', 'Parent',prnt, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
 title('Wind direction','FontWeight','Bold', 'Color', clr, 'FontSize', siz);
 xlabel('Direction (degrees)', 'Color', clr, 'FontSize', siz);
 ylabel('Height (km)', 'Color', clr, 'FontSize', siz);
@@ -690,28 +690,36 @@ else
     clr = [1 1 1]; siz = 8;   
 end
 
-w2.s1 = subplot(1,2,1, 'units', 'normalized', 'Parent', prnt, 'position', pos1, 'XColor', clr, 'YColor', clr, 'FontSize', siz); 
+%w2.s1 = subplot(1,2,1, 'units', 'normalized', 'Parent', prnt, 'position', pos1, 'XColor', clr, 'YColor', clr, 'FontSize', siz); 
 %errorbar_x(data(:,2,1), data(:,1,1)./1000, data(:,2,1)-data(:,2,2), data(:,2,3)-data(:,2,1));
+w2.s1 = subplot('position', pos1, 'XColor', clr, 'YColor', clr, 'FontSize', siz, 'units', 'normalized', 'Parent', prnt);
 errorbar_x(data(:,2,1), data(:,1,1)./1000, data(:,2,2), data(:,2,3));
 title('Wind velocity','FontWeight','Bold', 'Color', clr, 'FontSize', siz);
 xlabel('Velocity (m/s)', 'Color', clr, 'FontSize', siz);
 ylabel('Height (km)', 'Color', clr, 'FontSize', siz);
 axis([0 40 YMIN YMAX]);
-a1 = get(w2.s1, 'Children');
-set(a1(1), 'Color', [0 0 0], 'LineWidth', 1); set(a1(2), 'Color', [.7 .7 .7]);
-set(w2.s1, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
 
-w2.s2 = subplot(1,2,2, 'units', 'normalized', 'Parent',prnt, 'position', pos2, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
+%w2.s2 = subplot(1,2,2, 'units', 'normalized', 'Parent',prnt, 'position', pos2, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
 %errorbar_x(data(:,3,1), data(:,1,1)./1000, data(:,3,1)-data(:,3,2), data(:,3,3)-data(:,3,1));
+w2.s2 = subplot('position', pos2, 'XColor', clr, 'YColor', clr, 'FontSize', siz, 'units', 'normalized', 'Parent', prnt);
 errorbar_x(data(:,3,1), data(:,1,1)./1000, data(:,3,2), data(:,3,3));
 title('Wind direction','FontWeight','Bold', 'Color', clr, 'FontSize', siz);
 xlabel('Direction (degrees)', 'Color', clr, 'FontSize', siz);
 ylabel('Height (km)', 'Color', clr, 'FontSize', siz);
 axis([XMIN XMAX YMIN YMAX])
-set(w2.s2,'xtick',[0 90 180 270 360]);
+
+a1 = get(w2.s1, 'Children');
+set(a1(1), 'Color', [0 0 0], 'LineWidth', 1); set(a1(2), 'Color', [.7 .7 .7]);
+set(w2.s1, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
+
 a2 = get(w2.s2, 'Children');
 set(a2(1), 'Color', [0 0 0], 'LineWidth', 1); set(a2(2), 'Color', [.7 .7 .7]);
 set(w2.s2, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
+
+set(w2.s1, 'position', pos1)
+set(w2.s2, 'position', pos2)
+set(w2.s2,'xtick',[0 90 180 270 360]);
+
 
 % Plot roses
 function plot_roses(data, trgt)
