@@ -72,9 +72,8 @@ if ~strcmp(wind.db, 'Interim')
 
     
     % Set storage matrices
-    stor_data   = zeros(17, 3, length(stor_time));           % Main storage matrix
-    
-    tI      = 1; % Time index used to fill the storage matrix
+    stor_data   = zeros(17, 3, length(stor_time));                          % Main storage matrix   
+    tI          = 1;                                                        % Time index used to fill the storage matrix
     
     % Read nc files
     for iY = str2double(wind.yr_s):str2double(wind.yr_e)      % Loop through years
@@ -118,7 +117,7 @@ if ~strcmp(wind.db, 'Interim')
                 
                 stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
             end
-            dlmwrite(fullfile(out_path, [num2str(iT, '%05i'), '.gen']), stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+            dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
             tI = tI+1;
         end                                      
     end
