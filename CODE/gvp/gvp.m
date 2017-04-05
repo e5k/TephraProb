@@ -308,9 +308,10 @@ global gvp stor htmldata
 
 volcano_code = get(gvp.top_code, 'String');
 
-urlwrite(['http://www.volcano.si.edu/volcano.cfm?vn=', volcano_code], 'tmp.html');
+websave('tmp.html', ['http://www.volcano.si.edu/volcano.cfm?vn=', volcano_code]);
 
-tables.idTableBy.plaintextPreceedingTable = 'Summary of Holocene eruption dates and Volcanic Explosivity Indices (VEI)';
+% Use htmlTableToCell function to retrieve table from html
+tables.idTableBy.plaintextPreceedingTable = '<table class="DivTable" title="Eruption history table for this volcano">';
 htmldata    = htmlTableToCell('tmp.html', tables);
 
 delete('tmp.html');
