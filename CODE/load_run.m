@@ -60,13 +60,13 @@ else
         load(run_pth);
 
         % Get grid
-        project.grd_pth     = fileparts(data.grid_pth);
+        [~,project.grd_pth] = fileparts(data.grid_pth);
         project.vent.east   = data.vent_easting;
         project.vent.north  = data.vent_northing;
         project.vent.zone   = data.vent_zone;
 
         % Check grid or points
-        if length(dir(['GRID/', project.grd_pth, filesep, '*.dat'])) == 5
+        if length(dir(fullfile('GRID', project.grd_pth, '*.dat'))) == 5
             project.grd_type = 0;
         else
             project.grd_type = 1;
