@@ -53,7 +53,6 @@ if state == 0
 end
 
 if isfield(data, 'testrun') && isfield(data, 'long_lasting')   
-
     % Check run number
     run_path        = fullfile('RUNS', data.run_name);
     if exist(run_path, 'dir')
@@ -76,8 +75,6 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
     stor_run = struct;
     home;
     
-    % If using the Parallel Computing Toolbox
-
     % Check if seasonality option is enable and wind preprocessing
     wind_vec_all    = datenum(data.wind_start):1/data.wind_per_day:(datenum(data.wind_start)+data.nb_wind/data.wind_per_day)-1/data.wind_per_day;     % Wind vector for the entire population
     
@@ -441,7 +438,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
             h = figure('Visible', 'off'); hist(std_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Sigma phi\n%d occurrences', length(std_stor_tot)),'FontWeight','bold'); xlabel('Sigma phi'); ylabel('Frequency');
             saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'sigma.eps')); 
             saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'sigma.fig')); close(h);
-            % Sigma phi
+            % Aggregation
             h = figure('Visible', 'off'); hist(agg_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Aggregation coefficient\n%d occurrences', length(agg_stor_tot)),'FontWeight','bold'); xlabel('Aggregation coefficient'); ylabel('Frequency');
             saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'aggregation.eps')); 
             saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'aggregation.fig')); close(h);

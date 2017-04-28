@@ -190,7 +190,10 @@ else
     if verLessThan('matlab', '8.2')
         matlabpool(cores); %#ok<*DPOOL>
     else
-        parpool(cores);
+        p = gcp('nocreate');
+        if isempty(p)
+            parpool(cores);
+        end
     end
     
     % runs TEPHRA2

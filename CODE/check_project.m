@@ -45,12 +45,6 @@ for i = 1:length(ref.var)
         else
             ref.ini{i} = num2str(getfield(tab,ref.var{i}));
         end
-%     else
-%         if ~isempty(ref.var{i})
-%             x = inputdlg(sprintf('%s\n\t%s\n\t%s\n', 'Enter the following variable:', ref.var{i}, ref.dsc{i}),...
-%                 'Please enter the missing variable', [1 50], ref.ini(i));
-%             ref.ini{i} = char(x);
-%         end
     end
 end
 
