@@ -442,7 +442,7 @@ if strcmp(wind.db, 'Interim')
     txt_new = strrep(txt_new, 'var_south', num2str(wind.lat_min));
     txt_new = strrep(txt_new, 'var_west', num2str(wind.lon_min));
     txt_new = strrep(txt_new, 'var_east', num2str(wind.lon_max));
-    txt_new = strrep(txt_new, 'var_out', strrep([wind.folder, 'nc', filesep], '\', '/'));
+    txt_new = strrep(txt_new, 'var_out', strrep([wind.folder, filesep, 'nc', filesep], '\', '/'));
         
     
     fid = fopen('download_ECMWF.py', 'w');
