@@ -141,7 +141,7 @@ else
         VWND      = ncread(fullfile(in_path, nc), 'v'); 
         
         LAT       = ncread(fullfile(in_path, nc), 'latitude');
-        LON       = ncread(fullfile(in_path, nc), 'longitude'); LON(LON>180) = LON(LON>180)-360;
+        LON       = ncread(fullfile(in_path, nc), 'longitude'); %LON(LON>180) = LON(LON>180)-360;
                
         fprintf('\tInterpolating and writing ascii files\n')
         for iT = 1:size(UWND,4)     % Loop through time
