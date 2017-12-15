@@ -47,12 +47,12 @@ project = load_run;
 if project.run_pth == -1
     return
     
-elseif length(dir([project.run_pth, 'CONF/ALL/'])) == 2
+elseif length(dir([project.run_pth, 'CONF/all/'])) == 2
     warndlg('No configuration file exist for this project. Please re-run the sampling of ESPs specifying the write_conf_files = 1');
     return
     
-elseif length(dir([project.run_pth, 'GS/ALL/'])) == 2
-    warndlg('No configuration file exist for this project. Please re-run the sampling of ESPs specifying the write_gs_files = 1');
+elseif length(dir([project.run_pth, 'GS/all/'])) == 2
+    warndlg('No grainsize file exist for this project. Please re-run the sampling of ESPs specifying the write_gs_files = 1');
     return
 end
 
