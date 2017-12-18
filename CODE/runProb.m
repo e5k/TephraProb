@@ -84,8 +84,9 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
     end
     
     if data.seasonality == 1                                                                            % If seasonality option enabled
-        month_rainy = ['01-', data.wind_start_rainy];                                                   % Starting month of the rainy season
-        month_dry   = ['01-', data.wind_start_dry];                                                     % Starting month of the dry season
+        % Fix by Sue Jenkins, Dec 2017
+        month_rainy = datetime(['01-', data.wind_start_rainy],'InputFormat','dd-MMMM');                 % Starting month of the rainy season
+        month_dry   = datetime(['01-', data.wind_start_dry],'InputFormat','dd-MMMM');                   % Starting month of the dry season
         tmp         = datevec(wind_vec_all);
         seas_str    = {'all', 'rainy', 'dry'};
         % Gets the wind profiles for each subseason
