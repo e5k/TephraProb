@@ -12,11 +12,11 @@ ___________________________________________________________________________
 
 Name:       conf_grid.m
 Purpose:    Prepare TephraProb computation grids usable with TEPHRA2
-Author:     S�bastien Biass
+Author:     S???bastien Biass
 Created:    April 2015
 Updates:    April 2015
             Octobre 2016: Fixed a bug for crossing of equator
-Copyright:  S�bastien Biass, University of Geneva, 2015
+Copyright:  S???bastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
 This file is part of TephraProb
@@ -772,7 +772,7 @@ y_vec = min_n : tmp.res : max_n;
 %% Create the mesh
 [utmx, utmy] = meshgrid(x_vec, y_vec);      % Create easting and northing matrices      
 %[lat, lon]   = utm2ll(utmx, utmy, ones(size(utmx)).*tmp.vent_zone);
-utmy         = flipdim(utmy,1);             % Symetry
+utmy         = flipud(utmy);             % Symetry
 
 %% Convert into lat/lon and create 3-columns grid in UTM
 [lat, lon, utm, dat] = fill_matrix(utmx, utmy, tmp.vent_zone);
@@ -832,25 +832,19 @@ lin = size(utmx, 1);	% Number of lines
 % Preparing coordinate matrix in Lat/Lon
 lat = zeros(lin, col);
 lon = zeros(lin, col);
+zone_mat = ones(size(utmx)).*zone_max;
 
 wb       = waitbar(0,'Filling matrix...');
-count_wb = 1;
 
+% Note: got rid of one loop, but UTM2ll does not work with matrices
 for i = 1:lin
-    for j = 1:col
-        [LT, LN] = utm2ll(utmx(i,j), utmy(i,j), zone_max);	% Calculate lat/lon coordinate for each point
-        lat(i,j) = LT;	% Fills up lat matrix
-        lon(i,j) = LN;	% Fills up lon matrix
-        waitbar(count_wb / (lin*col));
-        count_wb = count_wb + 1;
-    end
+    [LT, LN] = utm2ll(utmx(i,:), utmy(i,:), zone_mat(i,:));	% Calculate lat/lon coordinate for each point
+    
+    lat(i,:) = LT;	% Fills up lat matrix
+    lon(i,:) = LN;	% Fills up lon matrix
+    waitbar(i / lin);
 end
 close(wb)
-
-% if lat(1,1) < 0
-%     lat  = flipud(lat);
-% 
-% end
 
 utm = zeros(numel(utmy),3);	% Final XYZ utm matrix (for TEPHRA2 calculations)
 dat = zeros(lin, col);      % Final M*N matrix (for map display)
@@ -865,14 +859,3 @@ for i = 1:lin
     waitbar(i / lin);
 end
 close(wb)
-
-function zone_out = check_zone(zone_in, type)
-% Formats UTM zones
-% Type 0: 17N
-%      1: 17 N
-if type == 0
-    zone_out = char(strcat(regexp(zone_in, '\d+', 'match'), regexp(zone_in, '[A-Z]', 'match')));
-elseif type == 1
-    zone_out = [num2str(sscanf(zone_in, '%d')), ' ', zone_in(length(zone_in))];
-end
-

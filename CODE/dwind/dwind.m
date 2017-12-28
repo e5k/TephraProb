@@ -281,7 +281,7 @@ w.wind6_dataset = uicontrol(...
     'position', [.1 .2 .8 .3],...
     'ForegroundColor', [.75 .75 .75],...
     'BackgroundColor', [.35 .35 .35],...
-    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim'});
+    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA-Interim (offline)'});
 
 w.wind6_txt = uicontrol(...
     'parent', w.wind6,...
@@ -342,20 +342,35 @@ w.wind5_but_download = uicontrol(...
     'String', 'Download');
 
 set(w.wind5_but_download, 'callback', {@but_wind5_download, w})
-set(w.wind6_dataset, 'callback', {@but_wind6_dataset});
+set(w.wind6_dataset, 'callback', {@but_wind6_dataset,w});
 
 % Adapt display accross plateforms
 set_display
     
-function but_wind6_dataset(hObject,~)
+function but_wind6_dataset(hObject,~,w)
 set(findobj('tag', 'year_start'), 'Value', 1);
 set(findobj('tag', 'year_end'), 'Value', 1);
 yr  = datevec(now); yr = yr(1);
 if get(hObject, 'Value') == 1       % Reanalysis 1
-    yrs = arrayfun(@num2str, 1949:yr, 'UniformOutput', false);
+    yrs = arrayfun(@num2str, 1949:yr, 'UniformOutput', false);   
 else          % Reanalysis 2 or ERA-Interim
     yrs = arrayfun(@num2str, 1979:yr, 'UniformOutput', false);
 end
+
+if get(hObject, 'Value') == 4       % If processing offline ERA-Interim
+    set(w.wind5_but_download, 'String', 'Process');
+    set(w.wind3_s_year, 'Enable', 'off');
+    set(w.wind3_e_year, 'Enable', 'off');
+    set(w.wind3_s_month, 'Enable', 'off');
+    set(w.wind3_e_month, 'Enable', 'off');
+else
+    set(w.wind5_but_download, 'String', 'Download');
+    set(w.wind3_s_year, 'Enable', 'on');
+    set(w.wind3_e_year, 'Enable', 'on');
+    set(w.wind3_s_month, 'Enable', 'on');
+    set(w.wind3_e_month, 'Enable', 'on');
+end
+        
 set(findobj('tag', 'year_start'), 'String', yrs);
 set(findobj('tag', 'year_end'), 'String', yrs);
 
@@ -379,16 +394,17 @@ wind.lat     = get(w.wind2_lat, 'String');
 wind.lon     = get(w.wind2_lon, 'String');
 wind.name    = get(w.wind4_name, 'String');
 
+db           = {'Reanalysis1', 'Reanalysis2', 'Interim', 'InterimOff'};
+wind.db      = db{get(w.wind6_dataset, 'Value')};
+wind.int_ext = str2double(get(w.wind2_ext, 'String'));
+meth         = {'Linear', 'Nearest', 'Pchip', 'Cubic', 'Spline'};
+wind.meth    = meth{get(w.wind2_int, 'Value')};
+
 wind.yr_s    = yrs{get(w.wind3_s_year, 'Value')};
 wind.yr_e    = yrs{get(w.wind3_e_year, 'Value')};
 wind.mt_s    = mts{get(w.wind3_s_month, 'Value')};
 wind.mt_e    = mts{get(w.wind3_e_month, 'Value')};
 
-db           = {'Reanalysis1', 'Reanalysis2', 'Interim'};
-wind.db      = db{get(w.wind6_dataset, 'Value')};
-wind.int_ext = str2double(get(w.wind2_ext, 'String'));
-meth         = {'Linear', 'Nearest', 'Pchip', 'Cubic', 'Spline'};
-wind.meth    = meth{get(w.wind2_int, 'Value')};
 
 % Define extent
 if strcmp(wind.db, 'Interim')
@@ -426,6 +442,20 @@ mkdir(wind.folder);
 mkdir(fullfile(wind.folder, 'nc'));
 mkdir(fullfile(wind.folder, 'ascii'));
 
+% In case ERA offline, retrieve netcdf files
+if strcmp(wind.db, 'InterimOff')
+    [flname, pthname,] = uigetfile( ...
+    '*.nc', 'Choose ERA-Interim .nc files', 'MultiSelect', 'on');
+
+    if ischar(flname)
+        flname = {flname};
+    end
+    
+    for i = numel(flname)
+        movefile(fullfile(pthname, flname{i}), fullfile(wind.folder, 'nc', flname{i})),
+    end
+end
+
 save(fullfile(wind.folder, 'wind.mat'),'wind')
 
 
@@ -452,7 +482,10 @@ if strcmp(wind.db, 'Interim')
     !python download_ECMWF.py
     
     delete('download_ECMWF.py');
-
+    
+% Offline mode
+elseif strcmp(wind.db, 'InterimOff')
+    
 %% NOAA
 else
     % Work on input coordinates

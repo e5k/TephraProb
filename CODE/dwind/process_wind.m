@@ -16,6 +16,8 @@ Author:     Sebastien Biass
 Created:    April 2015
 Updates:    2015/10/05 Bug fix in wind direction
             2017/02/11 Re-wrote the processing with interpolation
+            2017/09/17 Added the possibility to download ERA wind
+            separately
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -63,7 +65,7 @@ date_end    = datenum([str2double(wind.yr_e), str2double(wind.mt_e), eomday(str2
 stor_time   = datevec(date_start:0.25:date_end);
 
 % Case NOAA NCEP/NCAR
-if ~strcmp(wind.db, 'Interim') 
+if ~isempty(regexp(wind.db, 'Reanalysis', 'ONCE'))
     if strcmp(wind.db, 'Reanalysis1')
         in_path = 'WIND/_Reanalysis1_Rawdata/';
     elseif strcmp(wind.db, 'Reanalysis2')
@@ -122,7 +124,71 @@ if ~strcmp(wind.db, 'Interim')
         end                                      
     end
     disp('Done!')
-% Case ECMWF ERA-Interim
+    
+    
+% Case ECMWF ERA-Interim Offline    
+elseif strcmp(wind.db, 'InterimOff')
+    
+    fl          = dir(fullfile(in_path, '*.nc'));
+    stor        = struct;
+    
+    for i = 1:length(fl)
+        stor(i).HGT       = ncread(fullfile(in_path, fl(i).name), 'z')/9.80665;
+        stor(i).UWND      = ncread(fullfile(in_path, fl(i).name), 'u'); 
+        stor(i).VWND      = ncread(fullfile(in_path, fl(i).name), 'v'); 
+        stor(i).LAT       = ncread(fullfile(in_path, fl(i).name), 'latitude');
+        stor(i).LON       = ncread(fullfile(in_path, fl(i).name), 'longitude');
+        stor(i).time      = double(ncread(fullfile(in_path, fl(i).name), 'time'))/24 + datenum(1900,1,1,0,0,0);           
+    end
+    
+    % Do some tests to see if the timestamp is correct
+    time    = [stor.time];
+    minTime = min(min([stor.time],[],1));
+    maxTime = max(max([stor.time],[],2));
+    
+    % Check if the maximum time from downloaded data is equal to the
+    % theoretical maximum time based on the time dimension
+    tmp     = minTime:.25:minTime+.25*(numel(time)-1);
+    if maxTime ~= tmp(end)
+        error('There is a problem in the time index. Make sure you download wind data over continuous periods')
+    end
+    
+    time = reshape(time, numel(time), 1);
+    [stor_time, timeIdx] = sortrows(time);
+    
+    % Concatenate data
+    HGT     = cat(4, stor.HGT);
+    UWND    = cat(4, stor.UWND);
+    VWND    = cat(4, stor.VWND);
+    
+    % Re-order data
+    HGT     = HGT(:,:,:,timeIdx);
+    UWND    = UWND(:,:,:,timeIdx);
+    VWND    = VWND(:,:,:,timeIdx);
+
+    % Set storage matrices
+    stor_data   = zeros(length(37), 3, length(stor_time));           % Main storage matrix
+    tI          = 1; % Time index used to fill the storage matrix
+    
+    fprintf('\tInterpolating and writing ascii files\n')
+    for iT = 1:size(UWND,4)     % Loop through time
+        for iL = 1:size(UWND,3)   % Loop through levels
+            % Interpolate to vent coordinates
+            u   = intVent(UWND, stor(i).LON, stor(i).LAT, [1, length(stor(i).LAT)], [1, length(stor(i).LON)], wind, iL, iT);
+            v	= intVent(VWND, stor(i).LON, stor(i).LAT, [1, length(stor(i).LAT)], [1, length(stor(i).LON)], wind, iL, iT);
+            z   = intVent(HGT, stor(i).LON, stor(i).LAT, [1, length(stor(i).LAT)], [1, length(stor(i).LON)], wind, iL, iT);
+
+            speed   = sqrt(u.^2+v.^2);                                  % Wind speed
+            angle   = atan2d(u,v);                                      % Wind direction
+            angle(angle<0) = 360+angle(angle<0);                        % Get rid of negative value
+
+            stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
+        end
+        dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+        tI = tI+1;
+    end  
+    
+% Case ECMWF ERA-Interim Online
 else   
     % Set storage matrices
     stor_data   = zeros(length(37), 3, length(stor_time));           % Main storage matrix
@@ -139,7 +205,6 @@ else
         HGT       = ncread(fullfile(in_path, nc), 'z')/9.80665;
         UWND      = ncread(fullfile(in_path, nc), 'u'); 
         VWND      = ncread(fullfile(in_path, nc), 'v'); 
-        
         LAT       = ncread(fullfile(in_path, nc), 'latitude');
         LON       = ncread(fullfile(in_path, nc), 'longitude'); %LON(LON>180) = LON(LON>180)-360;
                
