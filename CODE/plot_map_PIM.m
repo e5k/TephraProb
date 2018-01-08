@@ -69,6 +69,7 @@ if ~isempty(s)
     
     XX      = load(['GRID', filesep, project.grd_pth, filesep, project.grd_pth, '_lon.dat']);
     YY      = load(['GRID', filesep, project.grd_pth, filesep, project.grd_pth, '_lat.dat']);
+    res     = (XX(1,2)-XX(1,1))/2;
     
     [vent_lat, vent_lon] = utm2ll(project.vent.east, project.vent.north, project.vent.zone);
 
@@ -78,7 +79,7 @@ if ~isempty(s)
         % Plot
         figure('Name',[project.run_name, '_IM_', str{s(i)}]);
         contours    = prefs.maps.mass_contour;                
-        hd          = pcolor(XX,YY,file); shading flat; hold on;
+        hd          = pcolor(XX-res,YY-res,file); shading flat; hold on;
         [c,h]       = contour(XX,YY,file,contours, 'Color', 'k');
         clabel(c,h, contours, 'LabelSpacing', 1000, 'FontWeight', 'bold')
         set(hd, 'FaceAlpha', 0.5)
