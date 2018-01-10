@@ -66,10 +66,10 @@ else
         project.vent.zone   = data.vent_zone;
 
         % Check grid or points
-        if length(dir(fullfile('GRID', project.grd_pth, '*.dat'))) == 5
-            project.grd_type = 0;
-        else
+        if isempty(dir(fullfile('GRID/', project.grd_pth, '*.dat')))
             project.grd_type = 1;
+        else
+            project.grd_type = 0;
         end
         
         project.run_pth     = flpath;
