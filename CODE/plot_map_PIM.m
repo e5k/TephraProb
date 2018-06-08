@@ -94,7 +94,7 @@ if ~isempty(s)
         ylabel('Latitude');
         c = colorbar;
         ylabel(c, 'Tephra accumulation (kg m^-^2)');
-        plot_google_map('maptype', 'terrain');
+        plot_google_map('maptype', 'terrain', 'MapScale', 1);
         
         plot(vent_lon, vent_lat, '^k', 'LineWidth', 2, 'MarkerFaceColor', 'r', 'MarkerSize', 15);
         

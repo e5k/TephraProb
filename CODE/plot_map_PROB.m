@@ -99,7 +99,7 @@ if ~isempty(s)
         ylabel('Latitude');
         c = colorbar;
         ylabel(c,'Probability of tephra accumulation');
-        plot_google_map('maptype', 'terrain');
+        plot_google_map('maptype', 'terrain', 'MapScale', 1);
 
         plot(vent_lon, vent_lat, '^k', 'LineWidth', 2, 'MarkerFaceColor', 'r', 'MarkerSize', 15);
     

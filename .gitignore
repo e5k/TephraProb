@@ -6,5 +6,6 @@ node_
 plume2.dat
 *.m~
 *.asv
+*.o
 .DS_Store
 tmp.mat

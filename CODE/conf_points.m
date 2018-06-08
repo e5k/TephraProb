@@ -215,7 +215,7 @@ for i = 1:size(points,1)
     text(points{i,3}, points{i,2}, ['  \leftarrow  ', points{i,1}]);
 end
 
-plot_google_map
+plot_google_map('maptype','terrain', 'MapScale', 1);
 
 % Load button
 function cdp = but_load(~, ~, cdp)
