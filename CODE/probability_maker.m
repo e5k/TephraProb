@@ -15,7 +15,7 @@ Purpose:    Retrieves output files of the TEPHRA2 model and computes them
             into probability matrices 
 Author:     Sebastien Biass
 Created:    April 2015
-Updates:    April 2015
+Updates:    Jul 2018
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -35,25 +35,26 @@ TephraProb is free software: you can redistribute it and/or modify
     along with TephraProb.  If not, see <http://www.gnu.org/licenses/>.
 %}
 
-function probability_maker
+function probability_maker(varargin)
 % Check that you are located in the correct folder!
 if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
+% Load inputs and checks
 project = load_run;
+load(fullfile('CODE', 'VAR', 'prefs'), 'prefs'); % Load prefs
+if project.run_pth == -1; return; end
+mkdir(fullfile(project.run_pth, 'DATA'));
 
-if project.run_pth == -1
-    return
+% Check if matrix or curve shape
+if nargin == 0; mode = 0; 
+else mode = varargin{1};
 end
 
 % Check if seasonality was activated
-if isdir(fullfile(project.run_pth, 'SUM', 'rainy'))
-    runs = {'all', 'dry', 'rainy'};
-elseif isdir(fullfile(project.run_pth, 'SUM', 'all'))
-    runs = {'all'};
-end
+runs = project.seasons;
 
 % Check if model was run
 if isempty(dir(fullfile(project.run_pth, 'OUT', 'all', '1', '*.out')))    
@@ -61,217 +62,175 @@ if isempty(dir(fullfile(project.run_pth, 'OUT', 'all', '1', '*.out')))
     return
 end
 
-% Check if sum folder already exists
-if ~isempty(dir(fullfile(project.run_pth, 'SUM', 'all', '*.out')))
-    choice = questdlg('It seems that results have been summed already. Do you wish to proceed to probability calculations?', ...
-        '', ...
-        'Sum','Probabilities','Probabilities');
-
-    switch choice
-        case 'Sum'
-            sum_files(project.run_pth, project.grd_pth, runs, project.grd_type);
-        case 'Probabilities'
-            prob_files(project.run_pth, project.grd_pth, runs, project.grd_type);
-    end 
-else
-    sum_files(project.run_pth, project.grd_pth, runs, project.grd_type);
+% Check if preprocessing was done already
+for iR = 1:length(runs)
+    if length(dir([project.run_pth, 'DATA', filesep, 'dataT2_*.mat'])) < length(runs)
+        preProcess(project, runs, prefs);
+    end
 end
+    
+computeProbs(project, runs, prefs, mode)
 
-% Function to sum files constituting a long-lasting eruption
-function sum_files(run_pth, grd_pth, runs, grd_type)
 
-disp('Summing files...');
+% Pre-processing of Tephra2 output files, including summing
+function preProcess(project, runs, prefs)
+
+% Load utm grid to retrieve output
+grd_tmp     = load(fullfile('GRID', project.grd_pth, [project.grd_pth, '.utm']));    
+disp('- Summing files...');
 
 for iR = 1:length(runs)
-    folds   = dir(fullfile(run_pth, 'OUT', runs{iR}));
-    
+    folds   = dir(fullfile(project.run_pth, 'OUT', runs{iR}));
+    folds   = folds(~ismember({folds.name},{'.','..'}));  % Remove . and ..
     % Check output folders
-    if length(folds) <= 2; errordlg('No ouput file was found. Did you run Tephra2?'); return; end
+    if isempty(folds); errordlg('No ouput file was found. Did you run Tephra2?'); return; end
+
+    nbRuns = size(folds,1); % Number of runs
+    dataT2 = zeros(size(grd_tmp,1),nbRuns); % Main storage
     
-    count   = 1;
     wb      = waitbar(0, sprintf('Summing files for season: %s - %.0f/%.0f\n', runs{iR}, iR, length(runs)));
-    for j = 3:size(folds,1)
+    for j = 1:nbRuns
         if strcmp(folds(j).name, '.') || strcmp(folds(j).name, '..') || strcmp(folds(j).name, '.DS_Store')
         else
-            files = dir(fullfile(run_pth, 'OUT', runs{iR}, folds(j).name, '*.out'));
-            if length(files) == 1
-                copyfile(fullfile(run_pth, 'OUT', runs{iR}, folds(j).name, files(1).name),...
-                    fullfile(run_pth, 'SUM', runs{iR}, [num2str(count, '%04d'), '.out']));
-            else
-                count2 = 1;
-                while ~exist('refF', 'var') || isempty(refF)
-                    refF    = load(fullfile(run_pth, 'OUT', runs{iR}, folds(j).name, files(count2).name));
-                    count2  = count2 + 1;
-                end
-                for k = count2:size(files,1)
-                    tmpF        = load(fullfile(run_pth, 'OUT',runs{iR}, folds(j).name, files(k).name));
-                    refF(:,4)   = refF(:,4) + tmpF(:,4);
-                end
-                dlmwrite(fullfile(run_pth, 'SUM', runs{iR}, [num2str(count, '%04d'), '.out']),...
-                    refF, 'delimiter', '\t', 'precision', 7);
-            end
-            count = count + 1;
-            clear refF;
-        end
-        waitbar(j/size(folds,1));
-    end   
-    close(wb)
-end
-prob_files(run_pth, grd_pth, runs, grd_type);  
-    
-function prob_files(run_pth, grd_pth, runs, grd_type)
-disp('Calculate probabilities...');
-load(fullfile('CODE', 'VAR', 'prefs'));
-massLimit = prefs.prob.mass_thresh;
-
-if grd_type == 0 % Calculation grid is a grid
-    % Create output directories
-    mkdir(fullfile(run_pth, 'PROB', '3C'));
-    mkdir(fullfile(run_pth, 'PROB', 'MAT'));
-    mkdir(fullfile(run_pth, 'PROB', 'GIS'));
-    
-    % Load grid
-    XX          = load(fullfile('GRID', grd_pth, [grd_pth, '_utmx.dat']));
-    YY          = load(fullfile('GRID', grd_pth, [grd_pth, '_utmy.dat']));
-    sX          = size(XX, 2);
-    sY          = size(XX, 1);
-    
-    for iR = 1:length(runs)   
-        % Mass vector for probability calculation
-        files       = dir(fullfile(run_pth, 'SUM', runs{iR}, '*.out'));
-        nz          = length(massLimit);   % Lenght of mass limit vector
-
-        filetest    = load(fullfile(run_pth, 'SUM', runs{iR}, files(1).name));
-        nb_points   = size(filetest,1);
-
-        % Check if the size of the grid corresponds to the number of points
-        if nb_points == sX*sY
-
-            filetest(:,4)= 0;
-
-            % 4 columns
-            probability_matrix = zeros(size(filetest, 1), size(filetest,2), nz);
-            % Matrix
-            prob_mat           = zeros(sY, sX, nz);
-            for j = 1:nz
-                probability_matrix(:,:,j) = filetest;
-            end
-
-            count=0;
-            wb = waitbar(0, sprintf('Processing files for season: %s - %.0f/%.0f\n', runs{iR}, iR, length(runs)));
-            for k=1:size(files, 1) 
-                fl = load(fullfile(run_pth, 'SUM', runs{iR}, files(k).name));
-                if ~isempty(fl)
-                    display([files(k).name, ' - Maximum accumulation = ', num2str(max(fl(:,4)))]);
-
-                    % Probability in a 3 columns format
-                    count = count + 1;
-                    for j = 1:nb_points
-                        for iZ = 1:nz
-                            if fl(j,4) >= massLimit(iZ)
-                                probability_matrix(j,4,iZ) = probability_matrix(j,4,iZ)+1;
-                            end
-                        end
-                    end
-
-                    % Probability in a matrix columns format
-                    count2 = 1;
-                    for yy = 1:sY
-                        for xx = 1:sX
-                            for iZ = 1:nz
-                                if fl(count2,4) >= massLimit(iZ)
-                                    prob_mat(yy,xx,iZ) = prob_mat(yy,xx,iZ)+1;
-                                end
-                            end   
-                            count2 = count2 + 1;
-                        end
-                    end
-                end
-                waitbar(k/size(files,1));
-            end
-            close(wb);
-            disp([num2str(count), ' files']);
-            disp('Writing probability matrices...')
+            files = dir(fullfile(project.run_pth, 'OUT', runs{iR}, folds(j).name, '*.out'));
             
-            wb = waitbar(0, 'Probability calculations...');
-            for iZ = 1:nz
-                fprintf('\t %.2f kg/m2\n', massLimit(iZ));
-
-                % 3 columns
-                probability_matrix(:,4, iZ) = probability_matrix(:, 4, iZ)/count;
-                output = fullfile(run_pth, 'PROB', '3C',  [runs{iR}, '_', num2str(massLimit(iZ)), '.prb']);
-                dlmwrite(output, probability_matrix(:,1:4,iZ), 'delimiter', '\t', 'precision', 7);  % I write a file containing informatin about the probability map.
-
-                % ArcGIS
-                output = fullfile(run_pth, 'PROB', 'GIS', [runs{iR}, '_', num2str(massLimit(iZ)), '.txt']);
-                prob_mat(:,:,iZ) = prob_mat(:,:,iZ)./count;
-                writeDEM(output, XX,YY,prob_mat(:,:,iZ));
-
-                % Grid
-                output = fullfile(run_pth, 'PROB', 'MAT', [runs{iR}, '_', num2str(massLimit(iZ)), '.prb']);
-                dlmwrite(output, prob_mat(:,:,iZ), 'delimiter', '\t', 'precision', 7);
-                waitbar(iZ / nz);
+            for k = 1:length(files)
+                tmpF        = dlmread(fullfile(project.run_pth, 'OUT',runs{iR}, folds(j).name, files(k).name));
+                dataT2(:,j) = dataT2(:,j)+tmpF(:,4);
             end
-            close(wb);
-        else
-            errordlg('The size of the grid does not correspond to the size of the output files', ' ');
+        end
+        waitbar(j/nbRuns);
+    end   
+    
+    % Reduce size of original Tephra2 data
+    dataT2(dataT2<10^(-prefs.files.nbDigits)) = 0;     % Remove accumulations < what specified in preferences
+    dataT2 = single(dataT2);    % Transform data to single
+    dataT2 = round(dataT2,prefs.files.nbDigits);
+    
+    % If Tephra2 was ran on a grid, modify the 3 col format to matrix
+    if project.grd_type == 0
+        [~,idxSort] = sortrows(grd_tmp(:,1:2), [2,1], {'descend','ascend'}); % Sort T2 output in increasing easting and decreasing northing
+        % Note: columns order varies from plotT2, but that is due to the
+        % way the grid is defined
+        dataT2 = dataT2(idxSort, :); % Sort 
+        dataT2 = reshape(dataT2, length(unique(grd_tmp(:,1))), length(unique(grd_tmp(:,2))), nbRuns); % Reshape
+        dataT2 = permute(dataT2, [2,1,3]); % Permute
+    end
+    fprintf('- Saving project file\n');
+    save([project.run_pth, 'DATA', filesep, 'dataT2_', runs{iR}, '.mat'], 'dataT2')
+    close(wb)  
+end
+
+
+function computeProbs(project, runs, prefs, mode)
+% Mode: 0 = prob maps, 1 = curves
+
+% If curves, get a larger amount of mass thresholds for smooth curve
+if mode == 0
+    massT = prefs.prob.mass_thresh;
+    probT = prefs.prob.prob_thresh;
+else
+    massT = logspace(-prefs.files.nbDigits,4,250);
+    
+    % Load points
+    if project.grd_type == 1
+        pth = fullfile('GRID', project.grd_pth, [project.grd_pth, '.points']);
+    else
+        fprintf('\t SELECT the .points file\n')
+        [fl,pth] = uigetfile('*.points','Select the .points file with the coordinates');
+        if fl == 0; return
+        else pth = fullfile(pth, fl);
         end
     end
+    load(pth, '-mat', 'grid');
     
-else % Calculation grid is a list of points made for hazard curves only 
-    % Create output directories
-    mkdir(fullfile(run_pth, 'PROB', '3C'));
-
-    for iR = 1:length(runs)   
-        % Mass vector for probability calculation
-        % massLimit   = [0.01, 0.05, 0.5, 1, 5, 10, 25, 50, 75, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000];
-
-        files       = dir(fullfile(run_pth, 'SUM', runs{iR}, '*.out'));
-        nz          = length(massLimit);   % Lenght of mass limit vector
-
-        filetest    = load(fullfile(run_pth, 'SUM', runs{iR}, files(1).name));
-        nb_points   = size(filetest,1);
-
-        filetest(:,4)= 0;
-
-        % 4 columns
-        probability_matrix = zeros(size(filetest, 1), size(filetest,2), nz);
-
-        for j = 1:nz
-            probability_matrix(:,:,j) = filetest;
-        end
-
-        count=0;
-        wb = waitbar(0, sprintf('Processing files for season: %s - %.0f/%.0f\n', runs{iR}, iR, length(runs)));
-        for k=1:size(files, 1) 
-            fl = load(fullfile(run_pth, 'SUM', runs{iR}, files(k).name));
-            if ~isempty(fl)
-                display([files(k).name, ' - Maximum accumulation = ', num2str(max(fl(:,4)))]);
-
-                % Probability in a 3 columns format
-                count = count + 1;
-                for j = 1:nb_points
-                    for iZ = 1:nz
-                        if fl(j,4) >= massLimit(iZ)
-                            probability_matrix(j,4,iZ) = probability_matrix(j,4,iZ)+1;
-                        end
-                    end
-                end
-
-            end
-            waitbar(k/size(files,1));
-        end
-        close(wb);
-        disp([num2str(count), ' files']);
-        disp('Writing probability matrices...')
-        for iZ = 1:nz
-            fprintf('\t %.2f kg/m2\n', massLimit(iZ));
-
-            % 3 columns
-            probability_matrix(:,4, iZ) = probability_matrix(:, 4, iZ)/count;
-            output = fullfile(run_pth, 'PROB', '3C', [runs{iR}, '_', num2str(massLimit(iZ)), '.prb']);
-            dlmwrite(output, probability_matrix(:,1:4,iZ), 'delimiter', '\t', 'precision', 7);  % I write a file containing informatin about the probability map.
+    points.name = grid.stor_points(:,1);
+    points.x    = [grid.stor_points{:,2}]';
+    points.y    = [grid.stor_points{:,3}]';
+    points.lat  = [grid.points{:,2}]';
+    points.lon  = [grid.points{:,3}]';
+    
+    % In case hazard curves based on matrices, also need to retrieve the
+    % grid to calculate indices
+    if project.grd_type == 0
+        XX = load(fullfile('GRID', project.grd_pth, [project.grd_pth, '_utmx.dat']));
+        YY = load(fullfile('GRID', project.grd_pth, [project.grd_pth, '_utmy.dat']));
+    
+        % Test if poins are in the grid
+        idx = points.x<=max(XX(1,:)) & points.x>=min(XX(1,:)) & ...
+            points.y<=max(YY(:,1)) & points.y>=min(YY(:,1));
+        
+        if nnz(~idx)>0
+            warning('Some points are outside of the computation grid and are ignored');
+            points.name = points.name(idx);
+            points.x    = points.x(idx);
+            points.y    = points.y(idx);
+            points.lat  = points.lat(idx);
+            points.lon  = points.lon(idx);
         end
     end
 end
-msgbox('Probability calculations finished!')
+
+
+%% Main loop through runs
+if exist([project.run_pth, 'DATA', filesep, 'dataProb', '.mat'], 'file')
+    load([project.run_pth, 'DATA', filesep, 'dataProb', '.mat'], 'dataProb');
+end
+
+for iR = 1:length(runs)
+    fprintf('- Computing Season %s\n', runs{iR})
+    %% Calculate probabilities
+    fprintf('\t_Loading Tephra2 data for season %s\n', runs{iR})
+    load([project.run_pth, 'DATA', filesep, 'dataT2_', runs{iR}, '.mat'], 'dataT2');
+    
+    % Case 1: Maps
+    if mode == 0
+        fprintf('\t_Computing probability maps \n');
+        md = 'prob';
+        dataProb.(md).(runs{iR}) = zeros(size(dataT2,1), size(dataT2,2), length(massT));
+        for iT = 1:length(massT)
+            dataProb.(md).(runs{iR})(:,:,iT) = sum(dataT2 >= massT(iT),3)/size(dataT2,3);
+        end
+        dataProb.massT = massT;
+    
+        % Calculate percentile
+        sprintf('\t_Computing isomass maps \n');
+        md = 'IM';
+        dataProb.(md).(runs{iR})= prctile(dataT2, (100-probT), 3);    % Taking 100-pct
+        dataProb.probT = probT;
+        
+    % Case 2: Hazard curves from probability maps
+    elseif mode == 1 && project.grd_type == 0
+        fprintf('\t_Interpolating hazard curves \n')
+        md = 'curve';
+        dataProb.(md).(runs{iR}) = zeros(size(points.x,1), length(massT));
+        for iT = 1:length(massT)
+            tmp = sum(dataT2 >= massT(iT),3)/size(dataT2,3);
+            dataProb.(md).(runs{iR})(:,iT) = interp2(XX,YY,tmp, points.x, points.y);
+        end
+        dataProb.massTc = massT;
+        dataProb.points = points;
+        
+    % Case 3: Hazard curves, no grid
+    elseif mode == 1 && project.grd_type == 1 
+        fprintf('\t_Processing hazard curves \n');
+        md = 'curve';
+        dataProb.(md).(runs{iR}) = zeros(size(points.x,1), length(massT));
+        for iT = 1:length(massT)
+            dataProb.(md).(runs{iR})(:,iT) = sum(dataT2 >= massT(iT),2)/size(dataT2,2);
+        end
+        dataProb.massTc = massT;
+        dataProb.points = points;   
+    end
+        
+    %% Write hazard curves
+    if mode == 1
+        fprintf('\t_Writing hazard curves \n')
+        for iP = 1:length(dataProb.points.x)
+            dlmwrite(fullfile('CURVES', [dataProb.points.name{iP}, '_',  project.run_name, '_', runs{iR}, '.out']), [dataProb.massTc', dataProb.curve.(runs{iR})(iP,:)'.*100], 'delimiter', '\t');
+        end
+    end
+end
+
+% Save matrices
+save([project.run_pth, 'DATA', filesep, 'dataProb', '.mat'], 'dataProb');

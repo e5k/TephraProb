@@ -144,12 +144,14 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         mkdir(fullfile(out_pth, 'CONF', seas_str{seas}));
         mkdir(fullfile(out_pth, 'GS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'LOG', seas_str{seas}));
-        mkdir(fullfile(out_pth, 'FIG', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'FIG'));
+        mkdir(fullfile(out_pth, 'FIG/ESP', seas_str{seas}));
+        mkdir(fullfile(out_pth, 'FIG/MAPS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'SUM', seas_str{seas}));
-        mkdir(fullfile(out_pth, 'CURVES', seas_str{seas}));
-        if ~exist(fullfile(out_pth, 'PROB'), 'dir')
-            mkdir(fullfile(out_pth, 'PROB'));
-        end
+        %mkdir(fullfile(out_pth, 'CURVES', seas_str{seas}));
+%         if ~exist(fullfile(out_pth, 'PROB'), 'dir')
+%             mkdir(fullfile(out_pth, 'PROB'));
+%         end
 
         % Get the wind vector for the season considered
         if strcmp(seas_str{seas}, 'all')
@@ -169,7 +171,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                 mkdir(fullfile(out_pth, 'CONF', seas_str{seas}, num2str(i)));
             end
             if data.write_fig_sep == 1
-                mkdir(fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i)));
+                mkdir(fullfile(out_pth, 'FIG/ESP/', seas_str{seas}, num2str(i)));
             end
 
             test_run    = 0;                  % Check variable (0 if run is rejected, 1 if validated)
@@ -208,13 +210,18 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     end
 
                     % Loop to assign the duration of each sim
-                    for k = 1:length(dur_tmp)
-                        if k == length(dur_tmp)
-                            dur_tmp(k) = mod(dur, 3600*(24/data.wind_per_day));
-                        else
-                            dur_tmp(k) = 3600*(24/data.wind_per_day);
+                    if data.long_lasting == 0
+                        dur_tmp(1) = dur;
+                    else
+                        for k = 1:length(dur_tmp)
+                            if k == length(dur_tmp)
+                                dur_tmp(k) = mod(dur, 3600*(24/data.wind_per_day));
+                            else
+                                dur_tmp(k) = 3600*(24/data.wind_per_day);
+                            end
                         end
                     end
+                    
                     wind_vec    = (date_start:(date_start+nb_sim-1))';          % Gets the wind file for each sim
 
                     % Make sure that all wind profiles contained in wind_vec
@@ -341,6 +348,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     stor_run(i).mer     = mer_tmp;
                     stor_run(i).mass    = mass_tmp;
                     stor_run(i).dur     = dur;
+                    stor_run(i).wind    = speed_tmp;
                     stor_run(i).date    = datenum(data.wind_start)+wind_vec./4;
                     stor_run(i).gs_med  = gs_med;
                     stor_run(i).gs_std  = gs_std;
@@ -365,12 +373,12 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     if data.write_fig_sep == 1
                         % Plume height
                         h = figure('Visible', 'off'); hist(ht_tmp,15); colormap([.8 .8 .8]);  title('Plume height','FontWeight','bold'); xlabel('Height (m asl)'); ylabel('Frequency');
-                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'plume_height.eps')); 
-                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'plume_height.fig')); close(h);
+                        saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, num2str(i), 'plume_height.eps')); 
+                        saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, num2str(i), 'plume_height.fig')); close(h);
                         % Mass
                         h = figure('Visible', 'off'); hist(mass_tmp,15); colormap([.8 .8 .8]);  title('Mass','FontWeight','bold'); xlabel('Mass (kg)'); ylabel('Frequency');
-                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'mass.eps')); 
-                        saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, num2str(i), 'mass.fig')); close(h);
+                        saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, num2str(i), 'mass.eps')); 
+                        saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, num2str(i), 'mass.fig')); close(h);
                     end
 
                     % Write configuration files
@@ -413,40 +421,40 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
             fprintf('\t Write all figures\n');
             % Plume height
             h = figure('Visible', 'off'); hist(height_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Plume height\n%d occurrences', length(height_stor_tot)),'FontWeight','bold'); xlabel('Height (m asl)'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'plume_height.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'plume_height.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'plume_height.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'plume_height.fig')); close(h);
             % Mass (of each run)
             h = figure('Visible', 'off'); hist(mass_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Total mass per run\n%d occurrences', length(mass_stor_tot)),'FontWeight','bold'); xlabel('Mass (kg)'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_run.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_run.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'mass_run.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'mass_run.fig')); close(h);
             % Mass (of each simulation)
             h = figure('Visible', 'off'); hist(mass_stor_tot_all,15); colormap([.8 .8 .8]);  title(sprintf('Total mass per simulation\n%d occurrences', length(mass_stor_tot_all)),'FontWeight','bold'); xlabel('Mass (kg)'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_sim.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mass_sim.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'mass_sim.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'mass_sim.fig')); close(h);
             % Mass eruption rate
             h = figure('Visible', 'off'); hist(mer_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Mass eruption rate\n%d occurrences', length(mer_stor_tot)),'FontWeight','bold'); xlabel('MER (kg/s)'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mer.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'mer.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'mer.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'mer.fig')); close(h);
             % Start date
             h = figure('Visible', 'off'); hist(date_stor_tot, round(data.nb_wind/4/365)*12); colormap([.8 .8 .8]); datetick('x', 'mm/YY'); title(sprintf('Start date\n%d occurrences', length(date_stor_tot)),'FontWeight','bold'); xlabel('Date (per month)'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'date.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'date.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'date.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'date.fig')); close(h);
             % Median phi
             h = figure('Visible', 'off'); hist(med_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Median phi\n%d occurrences', length(med_stor_tot)),'FontWeight','bold'); xlabel('Median phi'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'median.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'median.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'median.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'median.fig')); close(h);
             % Sigma phi
             h = figure('Visible', 'off'); hist(std_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Sigma phi\n%d occurrences', length(std_stor_tot)),'FontWeight','bold'); xlabel('Sigma phi'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'sigma.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'sigma.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'sigma.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'sigma.fig')); close(h);
             % Aggregation
             h = figure('Visible', 'off'); hist(agg_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Aggregation coefficient\n%d occurrences', length(agg_stor_tot)),'FontWeight','bold'); xlabel('Aggregation coefficient'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'aggregation.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'aggregation.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'aggregation.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'aggregation.fig')); close(h);
             % Duration
             h = figure('Visible', 'off'); hist(dur_stor_tot,15); colormap([.8 .8 .8]);  title(sprintf('Eruption Duration\n%d occurrences', length(agg_stor_tot)),'FontWeight','bold'); xlabel('Duration (h)'); ylabel('Frequency');
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'duration.eps')); 
-            saveas(h, fullfile(out_pth, 'FIG', seas_str{seas}, 'duration.fig')); close(h);
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'duration.eps')); 
+            saveas(h, fullfile(out_pth, 'FIG/ESP', seas_str{seas}, 'duration.fig')); close(h);
         end
 
         % Write the log file for all runs
@@ -596,7 +604,8 @@ t.fig = figure(...
                 'RowStriping', 'on',...
                 'Data', tab_data, ...
                 'RowName', [],...
-                'ForegroundColor', [1 1 1]);
+                'ForegroundColor', [1 1 1],...
+                'FontSize', 12);
 
            % Ok button    
            t.ok = uicontrol(...

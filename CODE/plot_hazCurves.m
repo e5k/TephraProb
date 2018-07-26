@@ -42,6 +42,9 @@ if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     return
 end
 
+% Load preference file
+load(['CODE', filesep, 'VAR', filesep, 'prefs'], 'prefs');
+
 d       = dir(['CURVES', filesep, '*.out']);
 str     = {d.name};
 
@@ -57,18 +60,23 @@ if ~isempty(s)
     cmap = linspecer(length(s));
     
     figure; hold on
+    maxtmp = 0;
     for i = 1:length(s)
         file    = load(['CURVES', filesep, str{s(i)}]);
-
         % Plot
         leg{i}  = sprintf('%s', get_name(str{s(i)}));
         plot(file(:,1), file(:,2), 'Color', cmap(i,:));
+        
+        if max(file(:,1))>maxtmp
+            maxtmp = max(file(:,1));
+        end
     end
     
     xlabel('Mass accumulation (kg/m^2)');
-    ylabel('Exceedance probability');
+    ylabel('Exceedance probability (%)');
     set(gca, 'YScale', 'Log', 'XScale', 'Log', 'Box', 'on');
-    xlim([0.001, 1000]);
+    xlim([10^(-prefs.files.nbDigits), 10^(ceil(log10(maxtmp)))]);
+    ylim([.001 100]);
     legend(leg,'Interpreter', 'none');
     hold off
 end

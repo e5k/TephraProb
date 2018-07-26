@@ -77,8 +77,9 @@ t.fig = figure(...
 
         % Menu
         t.menu0 = uimenu(t.fig, 'Label', 'File');
-            t.m01 = uimenu(t.menu0, 'Label', 'Load', 'Accelerator','O', 'callback', 'load_project');
-            t.m02 = uimenu(t.menu0, 'Label', 'Preferences', 'Accelerator', ';', 'Separator', 'on', 'callback', 'get_prefs');
+            t.m01 = uimenu(t.menu0, 'Label', 'Load', 'Accelerator','O', 'callback', @load_project);
+            t.m02 = uimenu(t.menu0, 'Label', 'Close current', 'Accelerator','W', 'callback', @close_project);
+            t.m03 = uimenu(t.menu0, 'Label', 'Preferences', 'Accelerator', ';', 'Separator', 'on', 'callback', 'get_prefs');
         t.menu1 = uimenu(t.fig, 'Label', 'Input');
             t.m11 = uimenu(t.menu1, 'Label', 'Grid', 'Accelerator', 'G', 'callback', 'conf_grid');
             t.m12 = uimenu(t.menu1, 'Label', 'Points', 'Accelerator', 'P', 'callback', 'conf_points');
@@ -97,14 +98,16 @@ t.fig = figure(...
             t.m23 = uimenu(t.menu2, 'Label', 'Run TEPHRA2', 'callback', 'runT2', 'separator', 'on');
                             
         t.menu3 = uimenu(t.fig, 'Label', 'Post processing');
-            t.m31 = uimenu(t.menu3, 'Label', 'Probability calculations', 'callback', 'probability_maker');
-            t.m32 = uimenu(t.menu3, 'Label', 'Hazard curves', 'callback', 'hazCurve_maker');
+            t.m31 = uimenu(t.menu3, 'Label', 'Probability calculations', 'callback', {@probability_maker_,0});
+            t.m32 = uimenu(t.menu3, 'Label', 'Hazard curves', 'callback', {@probability_maker_,1});
             t.m33 = uimenu(t.menu3, 'Label', 'Probabilistic isomass maps', 'callback', 'prob2IM', 'Separator', 'on');
-                
+            t.m34 = uimenu(t.menu3, 'Label', 'File management', 'Separator', 'on');
+                t.m341 = uimenu(t.m34, 'Label', 'Export ASCII files', 'callback', 'exportASCII');
+                t.m342 = uimenu(t.m34, 'Label', 'Archive Tephra2 output files', 'callback', 'archiveFiles');
         t.menu4 = uimenu(t.fig, 'Label', 'Display');
             t.m45 = uimenu(t.menu4, 'Label', 'Display figure', 'callback', 'display_figure');
-            t.m41 = uimenu(t.menu4, 'Label', 'Probability maps', 'Separator', 'on', 'callback', 'plot_map_PROB');
-            t.m42 = uimenu(t.menu4, 'Label', 'Isomass maps', 'callback', 'plot_map_PIM');
+            t.m41 = uimenu(t.menu4, 'Label', 'Probability maps', 'Separator', 'on', 'callback', {@plotMap_,0});
+            t.m42 = uimenu(t.menu4, 'Label', 'Isomass maps', 'callback', {@plotMap_,1});
             t.m43 = uimenu(t.menu4, 'Label', 'Hazard curves', 'Separator', 'on', 'callback', 'plot_hazCurves');
             %t.m44 = uimenu(t.menu4, 'Label', 'Export kml', 'Enable', 'off');
             
@@ -133,20 +136,31 @@ t.fig = figure(...
                 'FontSize', 45,...
                 'FontName', 'Arial Black');
             
+            
+            t.proj = uicontrol(...
+                'parent', t.main,...
+                'style', 'text',...
+                'units', 'normalized',...
+                'position', [.025 .025 .8 .05],...
+                'HorizontalAlignment', 'left',...
+                'BackgroundColor', [.25 .25 .25],...
+                'ForegroundColor', [.9 .5 0],...
+                'String', ' ');
+            
             t.ver = uicontrol(...
                 'parent', t.main,...
                 'style', 'text',...
                 'units', 'normalized',...
-                'position', [.45 .65 .1 .05],...
+                'position', [.9 .025 .1 .05],...
                 'HorizontalAlignment', 'center',...
                 'BackgroundColor', [.25 .25 .25],...
                 'ForegroundColor', [.9 .5 0],...
-                'String', 'v. 1.0');
+                'String', 'v. 1.5');
             
             t.ax = axes(...
                 'parent', t.main,...
                 'units', 'pixel',...
-                'position', [165 25 150 149]);
+                'position', [165 65 150 149]);
             logo = imread('logo.png');
             imagesc(logo);
             set(t.ax, 'XTick', [], 'YTick', [], 'box', 'on', 'XColor', [.25 .25 .25], 'YColor',[.25 .25 .25]);  
@@ -185,3 +199,44 @@ if exist('tmp.mat', 'file')
     clear tmp
     delete('tmp.mat');
 end
+
+function plotMap_(~,~,type)
+    plotMap(type);
+    
+function probability_maker_(~,~,type)
+    probability_maker(type);
+    
+    
+function load_project(~,~)
+global t
+% Check that you are located in the correct folder!
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
+    return
+end
+
+if exist('tmp.mat', 'file')
+    delete('tmp.mat')
+    set(t.proj, 'String', ' ');
+end
+
+tmp = load_run;
+if tmp.run_pth ~= -1   
+    prts = strsplit(fileparts(tmp.run_pth),filesep);
+    proj = [prts{end-1}, filesep, prts{end}];
+    set(t.proj, 'String', proj);
+    save('tmp.mat', 'tmp');
+end
+
+function close_project(~,~)
+global t
+if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
+    errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
+    return
+end
+
+if exist('tmp.mat', 'file')
+    delete('tmp.mat')
+    set(t.proj, 'String', ' ');
+end
+
