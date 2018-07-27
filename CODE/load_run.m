@@ -103,6 +103,7 @@ if exist('tmp.mat', 'file')
     load('tmp.mat', 'tmp');
     project.run_pth = tmp.run_pth;
     project.grd_pth = tmp.grd_pth;
+    project.run_name = tmp.run_name;
     project.vent    = tmp.vent;
     if isfield(tmp, 'points')
         project.points = tmp.points;
@@ -114,6 +115,9 @@ if exist('tmp.mat', 'file')
     project.seasons_tag = tmp.seasons_tag;
     
     project.grd_type    = tmp.grd_type;
+    
+    project.par     = tmp.par; 
+    project.cores   = tmp.cores;
     
 else
     % Select run file

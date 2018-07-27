@@ -184,7 +184,7 @@ elseif strcmp(wind.db, 'InterimOff')
 
             stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
         end
-        dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+        dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), sortrows(stor_data(:,:,tI),1), 'delimiter', '\t', 'precision', 5);     % Write the wind file
         tI = tI+1;
     end  
     
@@ -222,7 +222,7 @@ else
                 
                 stor_data(iL,:,tI) = [z, speed, angle];                     % Convert vectors to wind speed and direction and fill the storage matrix
             end
-            dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), stor_data(:,:,tI), 'delimiter', '\t', 'precision', 5);     % Write the wind file
+            dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), sortrows(stor_data(:,:,tI),1), 'delimiter', '\t', 'precision', 5);     % Write the wind file
             tI = tI+1;
         end     
     end

@@ -66,6 +66,8 @@ end
 for iR = 1:length(runs)
     if length(dir([project.run_pth, 'DATA', filesep, 'dataT2_*.mat'])) < length(runs)
         preProcess(project, runs, prefs);
+    else
+        fprintf('Tephra2 files have already been post processed. To re-process them, delete the dataT2_*.mat files from the DATA/ folder of your run\n')
     end
 end
     
