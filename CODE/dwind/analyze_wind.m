@@ -45,7 +45,7 @@ end
 
 global w2 stor_data stor_time
 
-[FileName, FilePath] = uigetfile('*.mat', 'Load a wind project', 'wind.mat');
+[FileName, FilePath] = uigetfile('WIND/*.mat', 'Load a wind project', 'wind.mat');
 
 if FileName==0
     return

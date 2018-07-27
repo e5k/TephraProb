@@ -83,7 +83,7 @@ if mapType == 0
 elseif mapType == 1
     md      = 'IM';
     thresh  = dataProb.probT'; 
-    unit    = ' pct.';
+    unit    = ' %';
     ylab    = 'Tephra accumulation (kg m^-^2)';
     ctVal   = prefs.maps.mass_contour;
     minVal  = prefs.maps.min_mass;
