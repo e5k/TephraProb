@@ -111,7 +111,8 @@ for iR = 1:length(runs)
     
     % If Tephra2 was ran on a grid, modify the 3 col format to matrix
     if project.grd_type == 0
-        [~,idxSort] = sortrows(grd_tmp(:,1:2), [2,1], {'descend','ascend'}); % Sort T2 output in increasing easting and decreasing northing
+        [~,idxSort] = sortrows(grd_tmp(:,1:2), 2, 'descend'); % Sort T2 output in increasing easting and decreasing northing
+        %[~,idxSort] = sortrows(grd_tmp(:,1:2), [2,1], {'descend','ascend'});  % -> attempting to change this line for compatibility as 2015b doesn't accept multiple columns
         % Note: columns order varies from plotT2, but that is due to the
         % way the grid is defined
         dataT2 = dataT2(idxSort, :); % Sort 
