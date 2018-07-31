@@ -80,6 +80,9 @@ t.fig = figure(...
             t.m01 = uimenu(t.menu0, 'Label', 'Load', 'Accelerator','O', 'callback', @load_project);
             t.m02 = uimenu(t.menu0, 'Label', 'Close current', 'Accelerator','W', 'callback', @close_project);
             t.m03 = uimenu(t.menu0, 'Label', 'Preferences', 'Accelerator', ';', 'Separator', 'on', 'callback', 'get_prefs');
+            t.m04 = uimenu(t.menu0, 'Label', 'References', 'Separator', 'on');
+                t.m041 = uimenu(t.m04, 'Label', 'TephraProb updates', 'callback', {@ref, 'https://e5k.github.io/pages/tephraprob'});
+                t.m042 = uimenu(t.m04, 'Label', 'Reference paper', 'callback', {@ref, 'https://appliedvolc.springeropen.com/articles/10.1186/s13617-016-0050-5'});
         t.menu1 = uimenu(t.fig, 'Label', 'Input');
             t.m11 = uimenu(t.menu1, 'Label', 'Grid', 'Accelerator', 'G', 'callback', 'conf_grid');
             t.m12 = uimenu(t.menu1, 'Label', 'Points', 'Accelerator', 'P', 'callback', 'conf_points');
@@ -240,3 +243,5 @@ if exist('tmp.mat', 'file')
     set(t.proj, 'String', ' ');
 end
 
+function ref(~,~,url)
+ web(url, '-browser')

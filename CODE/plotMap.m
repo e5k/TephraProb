@@ -123,7 +123,8 @@ for i = 1:length(s)
     file     = dataProb.(md).(seas{seasI})(:,:,threshI);
 
     file(file<minVal) = nan; % Remove min masses for display
-        
+    
+    % Prepare map title
     figData.pth  = project.run_pth;
     figData.name = project.run_name;
     figData.fl   = strrep(str{s(i)}, ' ' ,'_');
@@ -131,7 +132,8 @@ for i = 1:length(s)
     figData.md   = md;
     
     % Plot
-    figure('Name',str{s(i)}, 'UserData', figData);                
+    figure('Name',str{s(i)}, 'UserData', figData);    
+    ax = axes;
     hd          = pcolor(XX-res,YY-res,file); shading flat; hold on;
     [c,h]       = contour(XX,YY,file,ctVal, 'Color', 'k');
     if prefs.maps.plot_labels == 1
@@ -146,6 +148,7 @@ for i = 1:length(s)
        caxis([min(prefs.maps.prob_contour), max(prefs.maps.prob_contour)]); 
     end
     
+    % Tidies season labels
     for iS = 1:length(project.seasons)
         if ~isempty(regexp(str{s(i)}, project.seasons{iS}, 'once'))
             ttl = strrep(str{s(i)}, project.seasons{iS}, project.seasons_tag{iS});
@@ -156,7 +159,18 @@ for i = 1:length(s)
     xlabel('Longitude');
     ylabel('Latitude');
     c = colorbar;
-    ylabel(c, ylab);
+    ylabel(c, ylab, 'FontSize', ax.XLabel.FontSize);
+    
+    % Make sure that the lowest tephra accumulation is labeled
+    if mapType == 1 && c.Ticks(1) > prefs.maps.min_mass
+        c.Limits(1)  = prefs.maps.min_mass;
+        c.Ticks      = [prefs.maps.min_mass, c.Ticks];
+    end
+    
+    
+    %% Extra plotting
+    
+    % Plot google backgroud
     plot_google_map('maptype', 'terrain', 'MapScale', 1);
     
     % Plot vent
@@ -170,7 +184,6 @@ for i = 1:length(s)
         end
     end
     
-
     % Plot grid extent
     if prefs.maps.plot_extent == 1
         gX = [XX(1,1), XX(1,end), XX(end,end), XX(end,1), XX(1,1)];
