@@ -9,3 +9,4 @@ plume2.dat
 *.o
 .DS_Store
 tmp.mat
+prefs.mat

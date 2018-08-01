@@ -79,6 +79,8 @@ if mapType == 0
     ylab    = 'Probability of tephra accumulation';
     ctVal   = prefs.maps.prob_contour;
     minVal  = prefs.maps.min_prob;
+    cmapV   = prefs.maps.prob_cmap;
+    cmap    = prefs.cmap{cmapV};
 % Case 2: Isomass maps
 elseif mapType == 1
     md      = 'IM';
@@ -87,6 +89,8 @@ elseif mapType == 1
     ylab    = 'Tephra accumulation (kg m^-^2)';
     ctVal   = prefs.maps.mass_contour;
     minVal  = prefs.maps.min_mass;
+    cmapV   = prefs.maps.mass_cmap;
+    cmap    = prefs.cmap{cmapV};
 end
 
 % Create the list of files
@@ -103,9 +107,8 @@ s       = listdlg('PromptString','Select one or multiple files to plot:',...
 if isempty(s); return; end 
 
 fprintf('_____________________________________________________________________________________________\n');
-fprintf('Tip: To save maps:\n\t1. Click on the map to save\n\t2. in the Matlab command line, type\n\t  >> print(gcf, ''-dpdf'', ''mapname.pdf'')\n\twhich will save the map under TephraProb/mapname.pdf\n')
-fprintf('You can also type:\n\t  >> saveAllMaps\n\tto save all opened maps to the MAPS/ folder of your project.\n')
-fprintf('By default, maps are saved as pdf. To enter a custom format, type:\n\t  >> saveAllMaps(format)\n\twhere format can be ''png'', ''eps'' or ''pdf''.\n')
+fprintf('To save all opened maps to the MAPS/ folder of your project, type:\n')
+fprintf('\t  >> saveAllMaps(format)\n\twhere format can be ''png'', ''eps'' or ''pdf''.\n')
 fprintf('_____________________________________________________________________________________________\n')
 
 % Load grid
@@ -134,7 +137,21 @@ for i = 1:length(s)
     % Plot
     figure('Name',str{s(i)}, 'UserData', figData);    
     ax = axes;
-    hd          = pcolor(XX-res,YY-res,file); shading flat; hold on;
+    % If log isomass
+    if mapType == 1 && prefs.maps.mass_log == 1
+        hd = pcolor(XX-res,YY-res,log10(file)); shading flat; hold on;
+    else
+        hd = pcolor(XX-res,YY-res,file); shading flat; hold on;
+    end
+    
+    % Colormap: makes sure than parula, HSV and jet are plotted in normal
+    % way, else invert
+    if cmapV <= 3
+        colormap(cmap);
+    else
+        colormap(flipud(eval(cmap)));
+    end
+    
     [c,h]       = contour(XX,YY,file,ctVal, 'Color', 'k');
     if prefs.maps.plot_labels == 1
         clabel(c,h, ctVal, 'LabelSpacing', 1000, 'FontWeight', 'bold')
@@ -142,16 +159,27 @@ for i = 1:length(s)
     set(hd, 'FaceAlpha', 0.5)
 
     % Define scaling
-    if mapType == 1 && prefs.maps.scale_pim == 1
-       caxis([min(prefs.maps.mass_contour), max(prefs.maps.mass_contour)]); 
+    if mapType == 1 && prefs.maps.scale_pim == 1 && prefs.maps.mass_log == 0
+       caxis([prefs.maps.mass_contour(1), prefs.maps.mass_contour(end)]); 
+    elseif mapType == 1 && prefs.maps.scale_pim == 1 && prefs.maps.mass_log == 1
+        caxis([log10(prefs.maps.mass_contour(1)), log10(prefs.maps.mass_contour(end))]); 
+    elseif mapType == 1 && prefs.maps.scale_pim == 0 && prefs.maps.mass_log == 1
+        caxis([log10(prefs.maps.min_mass), log10(max(max(file)))]); 
     elseif mapType == 0 && prefs.maps.scale_prob == 1
-       caxis([min(prefs.maps.prob_contour), max(prefs.maps.prob_contour)]); 
+       caxis([prefs.maps.prob_contour(1), prefs.maps.prob_contour(end)]); 
     end
     
+  
+        
+    
     % Tidies season labels
+    if  mapType == 0; ttlLab = 'Probability map - ';
+    else ttlLab = 'Probabilistic isomass map - ';
+    end
+    
     for iS = 1:length(project.seasons)
         if ~isempty(regexp(str{s(i)}, project.seasons{iS}, 'once'))
-            ttl = strrep(str{s(i)}, project.seasons{iS}, project.seasons_tag{iS});
+            ttl = [ttlLab, strrep(str{s(i)}, project.seasons{iS}, project.seasons_tag{iS})];
         end
     end
 
@@ -161,10 +189,14 @@ for i = 1:length(s)
     c = colorbar;
     ylabel(c, ylab, 'FontSize', ax.XLabel.FontSize);
     
+    % Adjust color ramp
     % Make sure that the lowest tephra accumulation is labeled
-    if mapType == 1 && c.Ticks(1) > prefs.maps.min_mass
+    if mapType == 1 && prefs.maps.mass_log == 0 && c.Ticks(1) > prefs.maps.min_mass
         c.Limits(1)  = prefs.maps.min_mass;
         c.Ticks      = [prefs.maps.min_mass, c.Ticks];
+    elseif mapType == 1 && prefs.maps.mass_log == 1
+        c.Ticks      = log10(prefs.maps.mass_contour);
+        c.TickLabels = cellfun(@strtrim, cellstr(num2str(prefs.maps.mass_contour')), 'UniformOutput', false);
     end
     
     
