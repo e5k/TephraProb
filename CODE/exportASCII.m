@@ -94,7 +94,7 @@ for iT = 1:length(r1)       % Type of file
             elseif r1(iT) == 2
                 for i = 1:size(dataProb.prob.(project.seasons{iS}),3)
                     tmp = dataProb.prob.(project.seasons{iS})(:,:,i);
-                    fl  = ['prob_', project.seasons{iS}, '_', num2str(dataProb.massT(1)), '_kgm2.txt'];
+                    fl  = ['prob_', project.seasons{iS}, '_', num2str(dataProb.massT(i)), '_kgm2.txt'];
                     if r2(iF) == 1 % Columns
                         dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t');
                     elseif r2(iF) == 2 % Grid
@@ -105,10 +105,10 @@ for iT = 1:length(r1)       % Type of file
                 end
                 
             % ISOMASS maps    
-            elseif r1(iT) == 2
+            elseif r1(iT) == 3
                 for i = 1:size(dataProb.IM.(project.seasons{iS}),3)
                     tmp = dataProb.IM.(project.seasons{iS})(:,:,i);
-                    fl  = ['prob_', project.seasons{iS}, '_', num2str(dataProb.probT(1)), '_kgm2.txt'];
+                    fl  = ['IM_', project.seasons{iS}, '_', num2str(dataProb.probT(i)), '_kgm2.txt'];
                     if r2(iF) == 1 % Columns
                         dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t');
                     elseif r2(iF) == 2 % Grid

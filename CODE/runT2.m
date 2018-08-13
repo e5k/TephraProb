@@ -14,7 +14,7 @@ Name:       runT2.m
 Purpose:    Compiles and runs the TEPHRA2 model
 Author:     Sebastien Biass
 Created:    April 2015
-Updates:    April 2015
+Updates:    August 2018
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -59,6 +59,9 @@ end
 mod_pth = [pwd, filesep, 'MODEL', filesep, 'forward_src', filesep];
 
 % On PCs, add the Cygwin folder to the PATH environment
+% Added 08-2018
+% Noticed a problem with the definition of the cygwin path when not
+% installed in c:\cygwin
 if ispc
     path1 = getenv('PATH');
     if strcmp(computer('arch'), 'win64')
@@ -77,14 +80,17 @@ if ispc
             % Handle response
             switch choice
                 case 'Yes'
-                    fname = uigetdir('C:\', 'Select the cygwin\bin directory');
-                    setenv('PATH', [path1,';',fname]);
+                    sprintf('Select the cygwin\bin directory\n');
+                    pathC = uigetdir('C:\', 'Select the cygwin\bin directory');
+                    setenv('PATH', [path1,';',pathC]);
                 case 'No'
                     url('https://cygwin.com/install.html');
                     return
             end
         end
     end
+else
+    pathC = [];
 end
         
 
@@ -96,7 +102,7 @@ system('make clean');
 if stat == 0                            % If compilation ok
     %system('chmod 
     cd(pth);
-    runit(project.run_pth,project.par,project.cores);  % Runs model
+    runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
 else
     cd(pth);
     errordlg('There was a problem compiling TEPHRA2...', ' ');
@@ -104,7 +110,7 @@ else
 end
 
 
-function runit(run_pth, par, cores)
+function runit(run_pth, par, cores, pathC)
 
 % Read the T2_stor files, retrieve the commands and sets the number of
 % lines
@@ -112,12 +118,12 @@ fid     = fopen([run_pth,'T2_stor.txt'], 'r');
 count   = 1;
 stor    = {};
 tline   = fgets(fid);
-stor{count} = check_line(tline);
+stor{count} = check_line(tline. pathC);
 while ischar(tline)
     count = count + 1;
     tline = fgets(fid);
     if ischar(tline)
-        stor{count} = check_line(tline);
+        stor{count} = check_line(tline, pathC);
     end
 end
 fclose(fid);
@@ -213,16 +219,19 @@ else
 end
 disp('Modelling finished!');
 
-function line_out = check_line(tline)
+function line_out = check_line(tline,pathC)
 
 % Some housekeeping tasks if run on windows
 if ispc
-    if strcmp(computer('arch'), 'win64')        % Cygwin 64 bits
-        pathC = 'C:\cygwin64\bin\bash';
-    elseif strcmp(computer('arch'), 'win32')    % Cygwin 32 bits 
-        pathC = 'C:\cygwin\bin\bash';
-    end
+%     if strcmp(computer('arch'), 'win64')        % Cygwin 64 bits    
+%         pathC = 'C:\cygwin64\bin\bash';
+%     elseif strcmp(computer('arch'), 'win32')    % Cygwin 32 bits 
+%         pathC = 'C:\cygwin\bin\bash';
+%     end
     
+    % Added 08-2018: Propagating the custom cygwin directory 
+    pathC = fullfile(pathC, 'bash');
+
     pth_tmp = pwd;                              % Retrieve path
     pth_tmp(regexp(pth_tmp, '\')) = '/';        
     pth_tmp(regexp(pth_tmp, ':')) = [];
