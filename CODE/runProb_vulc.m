@@ -150,6 +150,7 @@ if isfield(data, 'testrun')&& isfield(data, 'min_ri')
         mkdir(fullfile(out_pth, 'GS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'LOG', seas_str{seas}));
         mkdir(fullfile(out_pth, 'FIG'));
+        mkdir(fullfile(out_pth, 'KML'));
         mkdir(fullfile(out_pth, 'FIG/ESP', seas_str{seas}));
         mkdir(fullfile(out_pth, 'FIG/MAPS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'SUM', seas_str{seas}));
