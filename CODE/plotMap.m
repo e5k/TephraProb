@@ -168,9 +168,7 @@ for i = 1:length(s)
     elseif mapType == 0 && prefs.maps.scale_prob == 1
        caxis([prefs.maps.prob_contour(1), prefs.maps.prob_contour(end)]); 
     end
-    
-  
-        
+   
     
     % Tidies season labels
     if  mapType == 0; ttlLab = 'Probability map - ';
@@ -201,7 +199,6 @@ for i = 1:length(s)
     
     
     %% Extra plotting
-    
     % Plot google backgroud
     plot_google_map('maptype', 'terrain', 'MapScale', 1);
     
@@ -223,4 +220,5 @@ for i = 1:length(s)
         plot(gX, gY, '-r', 'linewidth',0.5);
     end
     set(gca, 'Layer', 'top');
+    
 end

@@ -36,10 +36,15 @@ TephraProb is free software: you can redistribute it and/or modify
 
 
 function display_figure
-[flname, flpath] = uigetfile('*.fig', 'Choose a figure to display');
+[flname, flpath] = uigetfile('*.fig', 'Choose a figure to display', 'MultiSelect', 'on');
 
-if flname == 0
-    return;
+if ischar(flname) || length(flname)==1
+    if flname == 0
+        return;
+    end    
+    flname = {flname};
 end
 
-openfig(fullfile(flpath,flname), 'new', 'visible');
+for i = 1:length(flname)
+    openfig(fullfile(flpath,flname{i}), 'new', 'visible');
+end
