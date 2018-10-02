@@ -35,8 +35,8 @@ TephraProb is free software: you can redistribute it and/or modify
 
 function tephraProb
 
-vers = '1.5.4';     % Can open multiple figures, attempt to fix the cygwin problem;
-
+%vers = '1.5.4';     % Can open multiple figures, attempt to fix the cygwin problem;
+vers = '1.6.1';     % Oct 2018 Added Google Earth export
 
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
