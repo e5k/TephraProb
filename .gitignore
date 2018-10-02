@@ -10,4 +10,7 @@ plume2.dat
 .DS_Store
 tmp.mat
 prefs.mat
-*.kml
+*.kmz
+*.jpg
+*.png
+*.api_key.mat

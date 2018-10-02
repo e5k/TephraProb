@@ -1,20 +1,10 @@
 %{
- ______                __                     ____               __        
-/\__  _\              /\ \                   /\  _`\            /\ \       
-\/_/\ \/    __   _____\ \ \___   _ __    __  \ \ \_\ \_ __   ___\ \ \____  
-   \ \ \  /'__`\/\ '__`\ \  _ `\/\`'__\/'__`\ \ \ ,__/\`'__\/ __`\ \ '__`\ 
-    \ \ \/\  __/\ \ \_\ \ \ \ \ \ \ \//\ \_\.\_\ \ \/\ \ \//\ \_\ \ \ \_\ \
-     \ \_\ \____\\ \ ,__/\ \_\ \_\ \_\\ \__/.\_\\ \_\ \ \_\\ \____/\ \_,__/
-      \/_/\/____/ \ \ \/  \/_/\/_/\/_/ \/__/\/_/ \/_/  \/_/ \/___/  \/___/ 
-                   \ \_\                                                   
-                    \/_/                                                   
-___________________________________________________________________________
-
 Name:       plot_hazCurves.m
 Purpose:    Plot hazard curves
 Author:     Sebastien Biass
 Created:    April 2015
 Updates:    April 2015
+            Oct 2018:   Modified so can be called as function
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -35,31 +25,41 @@ TephraProb is free software: you can redistribute it and/or modify
 %}
 
 
-function plot_hazCurves
+function plot_hazCurves(varargin)
 % Check that you are located in the correct folder!
 if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
-% Load preference file
-load(['CODE', filesep, 'VAR', filesep, 'prefs'], 'prefs');
 
-d       = dir(['CURVES', filesep, '*.out']);
-str     = {d.name};
+if nargin == 0  % -> called from GUI
+    % Load preference file
+    load(['CODE', filesep, 'VAR', filesep, 'prefs'], 'prefs');
 
-if ~isempty(str)
-    s       = listdlg('ListString',str,...
-                    'PromptString','Select one or multiple files to plot:',...
-                    'SelectionMode','multiple');
-else
-    warndlg('You have not computed hazard curves yet!');
+    d       = dir(['CURVES', filesep, '*.out']);
+    str     = {d.name};
+    vis     = 'on';
+    if ~isempty(str)
+        s       = listdlg('ListString',str,...
+                        'PromptString','Select one or multiple files to plot:',...
+                        'SelectionMode','multiple');
+    else
+        warndlg('You have not computed hazard curves yet!');
+    end
+
+else % -> called from another function
+    d       = dir(['CURVES', filesep, varargin{1}, '*']);
+    str     = {d.name};
+    s       = 1:length(str);
+    vis     = 'off';
+    prefs   = varargin{3};
 end
-
+    
 if ~isempty(s)
     cmap = linspecer(length(s));
     
-    figure; hold on
+    f = figure('visible', vis); hold on
     maxtmp = 0;
     for i = 1:length(s)
         file    = load(['CURVES', filesep, str{s(i)}]);
@@ -77,8 +77,13 @@ if ~isempty(s)
     set(gca, 'YScale', 'Log', 'XScale', 'Log', 'Box', 'on');
     xlim([10^(-prefs.files.nbDigits), 10^(ceil(log10(maxtmp)))]);
     ylim([.001 100]);
-    legend(leg,'Interpreter', 'none');
+    legend(leg,'Interpreter', 'none', 'Location', 'southwest');
     hold off
+    
+    if nargin > 0
+        print(f, varargin{2}, '-dpng');
+        close(f);
+    end
 end
 
 function nm = get_name(str)

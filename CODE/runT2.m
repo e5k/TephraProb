@@ -118,7 +118,7 @@ fid     = fopen([run_pth,'T2_stor.txt'], 'r');
 count   = 1;
 stor    = {};
 tline   = fgets(fid);
-stor{count} = check_line(tline. pathC);
+stor{count} = check_line(tline, pathC);
 while ischar(tline)
     count = count + 1;
     tline = fgets(fid);
@@ -217,6 +217,7 @@ else
     end
     
 end
+delete('plume2.dat', 'node_');
 disp('Modelling finished!');
 
 function line_out = check_line(tline,pathC)
