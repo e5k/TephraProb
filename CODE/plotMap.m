@@ -1,20 +1,9 @@
 %{
- ______                __                     ____               __        
-/\__  _\              /\ \                   /\  _`\            /\ \       
-\/_/\ \/    __   _____\ \ \___   _ __    __  \ \ \_\ \_ __   ___\ \ \____  
-   \ \ \  /'__`\/\ '__`\ \  _ `\/\`'__\/'__`\ \ \ ,__/\`'__\/ __`\ \ '__`\ 
-    \ \ \/\  __/\ \ \_\ \ \ \ \ \ \ \//\ \_\.\_\ \ \/\ \ \//\ \_\ \ \ \_\ \
-     \ \_\ \____\\ \ ,__/\ \_\ \_\ \_\\ \__/.\_\\ \_\ \ \_\\ \____/\ \_,__/
-      \/_/\/____/ \ \ \/  \/_/\/_/\/_/ \/__/\/_/ \/_/  \/_/ \/___/  \/___/ 
-                   \ \_\                                                   
-                    \/_/                                                   
-___________________________________________________________________________
-
-Name:       plot_map_PIM.m
-Purpose:    Plot isomass maps
+Name:       plotMap.m
+Purpose:    Plot output maps from TephraProb
 Author:     Sebastien Biass
 Created:    April 2015
-Updates:    April 2015
+Updates:    Oct 2018
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -107,8 +96,10 @@ s       = listdlg('PromptString','Select one or multiple files to plot:',...
 if isempty(s); return; end 
 
 % Create storage for Google Earth
-GEfold = cell(numel(s),1);
-mkdir(fullfile(project.run_pth, 'KML/tmp'));
+if prefs.maps.GE_export == 1
+    GEfold = cell(numel(s),1);
+    mkdir(fullfile(project.run_pth, 'KML/tmp'));
+end
 
 fprintf('_____________________________________________________________________________________________\n');
 fprintf('To save all opened maps to the MAPS/ folder of your project, type:\n')
@@ -205,8 +196,10 @@ for i = 1:length(s)
     
     
     %% Extra plotting
-    % Plot google backgroud
-    plot_google_map('maptype', 'terrain', 'MapScale', 1);
+    % Plot basemap
+    if prefs.maps.basemap == 2
+        plot_google_map('maptype', 'terrain', 'MapScale', 1);
+    end
     
     % Plot vent
     plot(vent_lon, vent_lat, '^k', 'LineWidth', 1, 'MarkerFaceColor', 'r', 'MarkerSize', 15);
@@ -228,126 +221,131 @@ for i = 1:length(s)
     set(gca, 'Layer', 'top');
     
     %% Prepare Google Earth content
-    
-    % Re-interpolates data to have equally-spaced coordinates for Google Earth 
-    obj = findobj(ax,'Type','Surface');
-    obj = double(obj.CData);
-    opc = 0.5;
-    
-    xNew = linspace(min(min(XX)), max(max(XX)), size(XX,2));
-    yNew = linspace(min(min(YY)), max(max(YY)), size(XX,1));
-    
-    [XNew, YNew] = meshgrid(xNew, yNew);
-    % Interpolation for surface
-    F       = scatteredInterpolant(reshape(XX,numel(XX),1), reshape(YY,numel(XX),1), reshape(obj,numel(XX),1));
-    ZNew    = F(XNew,YNew);
-    % Interpolation for contour
-    F2      = scatteredInterpolant(reshape(XX,numel(XX),1), reshape(YY,numel(XX),1), reshape(double(file),numel(XX),1));
-    ZNew2   = F2(XNew,YNew);
-    
-    % Plot surface
-    fl = [strParts{1},'_',strParts{2}, '.png'];
-    data = ge_imagesc(XNew(1,:),YNew(:,1), flipud(ZNew),...
-        'imgURL', fl,...
-        'cLimLow',ax.CLim(1),...
-        'cLimHigh',ax.CLim(2),...
-        'altitude',zeros(size(XX)),...
-        'altitudeMode','clampToGround',...
-        'colorMap',cmap,...
-        'alphaMatrix',ones(size(XX)).*opc,...
-        'name', ylab,...
-        'description', ylab);
-    
-    movefile(fl, fullfile(project.run_pth, 'KML', 'tmp', fl));
-    
-    % Clot contours
-    try
-        cntr = ge_contour(XNew, flipud(YNew), flipud(ZNew2),...
-            'lineValues',ctVal,...
-            'lineColor', '000000',...
-            'lineWidth', 2,...
+    if prefs.maps.GE_export == 1
+        % Re-interpolates data to have equally-spaced coordinates for Google Earth 
+        obj = findobj(ax,'Type','Surface');
+        obj = double(obj.CData);
+        opc = 0.5;
+
+        xNew = linspace(min(min(XX)), max(max(XX)), size(XX,2));
+        yNew = linspace(min(min(YY)), max(max(YY)), size(XX,1));
+
+        [XNew, YNew] = meshgrid(xNew, yNew);
+        % Interpolation for surface
+        F       = scatteredInterpolant(reshape(XX,numel(XX),1), reshape(YY,numel(XX),1), reshape(obj,numel(XX),1));
+        ZNew    = F(XNew,YNew);
+        % Interpolation for contour
+        F2      = scatteredInterpolant(reshape(XX,numel(XX),1), reshape(YY,numel(XX),1), reshape(double(file),numel(XX),1));
+        ZNew2   = F2(XNew,YNew);
+
+        % Plot surface
+        fl = [strParts{1},'_',strParts{2}, '.png'];
+        data = ge_imagesc(XNew(1,:),YNew(:,1), flipud(ZNew),...
+            'imgURL', fl,...
             'cLimLow',ax.CLim(1),...
             'cLimHigh',ax.CLim(2),...
+            'altitude',zeros(size(XX)),...
             'altitudeMode','clampToGround',...
-            'name', 'Contours');
-        cntr = ge_folder('Contours',cntr);   
-    catch
-        warning('Problem defining contours for Google Earth')
-        cntr = [];
+            'colorMap',cmap,...
+            'alphaMatrix',ones(size(XX)).*opc,...
+            'name', ylab,...
+            'description', ylab);
+
+        movefile(fl, fullfile(project.run_pth, 'KML', 'tmp', fl));
+
+        % Clot contours
+        try
+            cntr = ge_contour(XNew, flipud(YNew), flipud(ZNew2),...
+                'lineValues',ctVal,...
+                'lineColor', '000000',...
+                'lineWidth', 2,...
+                'cLimLow',ax.CLim(1),...
+                'cLimHigh',ax.CLim(2),...
+                'altitudeMode','clampToGround',...
+                'name', 'Contours');
+            cntr = ge_folder('Contours',cntr);   
+        catch
+            warning('Problem defining contours for Google Earth')
+            cntr = [];
+        end
+        ttlTmp = strsplit(ttl, ttlLab);
+        GEfold{i} = ge_folder(ttlTmp{2},[data, cntr]);
     end
-    ttlTmp = strsplit(ttl, ttlLab);
-    GEfold{i} = ge_folder(ttlTmp{2},[data, cntr]);
 end
 
 
 %% Write Google Earth File
-% Make colorbar
-cbar = ge_colorbar(max(XX(1,:)), min(YY(:,1)) ,ZNew,...
-    'numClasses',length(c.Ticks)-1,...
-    'labels', c.TickLabels,...
-    'cLimLow',ax.CLim(1),...
-    'cLimHigh',ax.CLim(2),...
-    'cBarFormatStr','%+01.2f',...
-    'colorMap',cmap,...
-    'name', ylab);
+if prefs.maps.GE_export == 1
+    % Make colorbar
+    cbar = ge_colorbar(max(XX(1,:)), min(YY(:,1)) ,ZNew,...
+        'numClasses',length(c.Ticks)-1,...
+        'labels', c.TickLabels,...
+        'cLimLow',ax.CLim(1),...
+        'cLimHigh',ax.CLim(2),...
+        'cBarFormatStr','%+01.2f',...
+        'colorMap',cmap,...
+        'name', ylab);
 
-% Plot extent
-box = ge_plot(gX, gY, 'name', 'Domain');
+    % Plot extent
+    box = ge_plot(gX, gY, 'name', 'Domain');
 
-% Plot vent
-pt = ge_point(vent_lon, vent_lat, 100, ...
-    'altitudeMode','clampToGround',...
-    'iconURL', 'http://maps.google.com/mapfiles/kml/shapes/volcano.png',...
-    'name', 'Vent',...
-    'description', '');
+    % Plot vent
+    pt = ge_point(vent_lon, vent_lat, 100, ...
+        'altitudeMode','clampToGround',...
+        'iconURL', 'http://maps.google.com/mapfiles/kml/shapes/volcano.png',...
+        'name', 'Vent',...
+        'description', '');
 
 
-% Plot hazard curves
-if prefs.maps.plot_pointC == 1 && isfield(dataProb, 'points') && mapType == 0
-    fprintf('- Preparing hazard curves, please wait...\n')
-    crvs = cell(numel(dataProb.points.lon),1);
-    for i = 1:numel(dataProb.points.lon)
-        % Plot the hazard curve
-        plot_hazCurves([dataProb.points.name{i}, '_', project.run_name],...
-            fullfile(project.run_pth, 'KML/tmp', [project.run_name,'_curve_',dataProb.points.name{i}, '.png']),...
-            prefs);
-        
-        crvs{i} = ge_point( dataProb.points.lon(i),  dataProb.points.lat(i), 100, ...
-            'altitudeMode','clampToGround',...
-            'iconURL', 'http://maps.google.com/mapfiles/kml/pal4/icon57.png',...
-            'name', dataProb.points.name{i},...
-            'description', ['<img src="', [project.run_name,'_curve_',dataProb.points.name{i}, '.png'] ,'">']);
+    % Plot hazard curves
+    if prefs.maps.plot_pointC == 1 && isfield(dataProb, 'points') && mapType == 0
+        fprintf('- Preparing hazard curves, please wait...\n')
+        crvs = cell(numel(dataProb.points.lon),1);
+        for i = 1:numel(dataProb.points.lon)
+            % Plot the hazard curve
+            plot_hazCurves([dataProb.points.name{i}, '_', project.run_name],...
+                fullfile(project.run_pth, 'KML/tmp', [project.run_name,'_curve_',dataProb.points.name{i}, '.png']),...
+                prefs);
+
+            crvs{i} = ge_point( dataProb.points.lon(i),  dataProb.points.lat(i), 100, ...
+                'altitudeMode','clampToGround',...
+                'iconURL', 'http://maps.google.com/mapfiles/kml/pal4/icon57.png',...
+                'name', dataProb.points.name{i},...
+                'description', ['<img src="', [project.run_name,'_curve_',dataProb.points.name{i}, '.png'] ,'">']);
+        end
+        crvs = ge_folder('Hazard curves', strcat(crvs{:}));
+        fprintf('- Done!...\n')
+    else
+        crvs = [];
     end
-    crvs = ge_folder('Hazard curves', strcat(crvs{:}));
-    fprintf('- Done!...\n')
-else
-    crvs = [];
-end
 
 
-% Write everythin and cleanup
-toWrite = [GEfold; {cbar}; {box}; crvs; {pt}]; % Google Earth data to write
-targetFold = fullfile(project.run_pth, 'KML');
-targetName = [project.run_name, ' - ', ttlLab(1:end-3)];
+    % Write everythin and cleanup
+    toWrite = [GEfold; {cbar}; {box}; crvs; {pt}]; % Google Earth data to write
+    targetFold = fullfile(project.run_pth, 'KML');
+    targetName = [project.run_name, ' - ', ttlLab(1:end-3)];
 
-% Write to kml
-ge_output(fullfile(targetFold, 'tmp', [targetName, '.kml']),...
-    [toWrite{:}],...
-    'name', targetName);
+    % Write to kml
+    ge_output(fullfile(targetFold, 'tmp', [targetName, '.kml']),...
+        [toWrite{:}],...
+        'name', targetName);
 
-% Zip the file
-zip(fullfile(targetFold, targetName), fullfile(targetFold, 'tmp/*'));
-% Convert to kmz
-movefile(fullfile(targetFold, [targetName, '.zip']), fullfile(targetFold, [targetName, '.kmz']));
-% Remove temp folder
-rmdir(fullfile(targetFold, 'tmp'), 's')
+    % Zip the file
+    zip(fullfile(targetFold, targetName), fullfile(targetFold, 'tmp/*'));
+    % Convert to kmz
+    movefile(fullfile(targetFold, [targetName, '.zip']), fullfile(targetFold, [targetName, '.kmz']));
+    % Remove temp folder
+    rmdir(fullfile(targetFold, 'tmp'), 's')
 
-% Try to open the file
-target = fullfile(targetFold, [targetName, '.kmz']);
-if ispc
-        system(['start "kmltoolbox" "' target '"']);
-elseif ismac
-        system(['open' ' "' target '"']);
-else
-    disp(['The KML file has been saved, open it in Google Earth: ', fullfile(project.run_pth, 'KML', [project.run_name, ' - ', ttlLab(1:end-3), '.kml'])]);
+    % Try to open the file
+    if prefs.maps.GE_show == 1
+        target = fullfile(targetFold, [targetName, '.kmz']);
+        if ispc
+                system(['start "kmltoolbox" "' target '"']);
+        elseif ismac
+                system(['open' ' "' target '"']);
+        else
+            disp(['The KML file has been saved, open it in Google Earth: ', fullfile(project.run_pth, 'KML', [project.run_name, ' - ', ttlLab(1:end-3), '.kml'])]);
+        end
+    end
 end

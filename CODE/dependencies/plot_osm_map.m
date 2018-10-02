@@ -1,4 +1,4 @@
-function varargout = plot_google_map(varargin)
+function varargout = plot_osm_map(varargin)
 % function h = plot_google_map(varargin)
 % Plots a google map on the current axes using the Google Static Maps API
 %
@@ -136,7 +136,12 @@ if isnumeric(apiKey)
     if exist('api_key.mat','file')
         load api_key
     else
-        apiKey = '';
+        % Modified by Seb
+        apiKey = inputdlg('Enter your API Key','MapQuest API',1);
+        funcFile = which('plot_OSM_map.m');
+        pth = fileparts(funcFile);
+        keyFile = fullfile(pth,'api_key.mat');
+        save(keyFile,'apiKey')
     end
 end
 
@@ -217,13 +222,13 @@ if nargin >= 2
                 markeridx = markeridx + 1;
             case 'autoaxis'
                 autoAxis = varargin{idx+1};
-            case 'apikey'
-                apiKey = varargin{idx+1}; % set new key
-                % save key to file
-                funcFile = which('plot_google_map.m');
-                pth = fileparts(funcFile);
-                keyFile = fullfile(pth,'api_key.mat');
-                save(keyFile,'apiKey')
+%             case 'apikey'
+%                 apiKey = varargin{idx+1}; % set new key
+%                 % save key to file
+%                 funcFile = which('plot_OSM_map.m');
+%                 pth = fileparts(funcFile);
+%                 keyFile = fullfile(pth,'api_key.mat');
+%                 save(keyFile,'apiKey')
             case 'style'
                 style = varargin{idx+1};
             case 'mapscale'
@@ -387,56 +392,66 @@ lat = (curAxis(3)+curAxis(4))/2;
 lon = (curAxis(1)+curAxis(2))/2;
 
 % Construct query URL
-preamble = 'http://maps.googleapis.com/maps/api/staticmap';
-location = ['?center=' num2str(lat,10) ',' num2str(lon,10)];
-zoomStr = ['&zoom=' num2str(zoomlevel)];
-sizeStr = ['&scale=' num2str(scale) '&size=' num2str(width) 'x' num2str(height)];
-maptypeStr = ['&maptype=' maptype ];
-if ~isempty(apiKey)
-    keyStr = ['&key=' apiKey];
-else
-    keyStr = '';
-end
-markers = '&markers=';
-for idx = 1:length(markerlist)
-    if idx < length(markerlist)
-        markers = [markers markerlist{idx} '%7C'];
-    else
-        markers = [markers markerlist{idx}];
-    end
-end
+% preamble = 'http://maps.googleapis.com/maps/api/staticmap';
+% location = ['?center=' num2str(lat,10) ',' num2str(lon,10)];
+% zoomStr = ['&zoom=' num2str(zoomlevel)];
+% sizeStr = ['&scale=' num2str(scale) '&size=' num2str(width) 'x' num2str(height)];
+% maptypeStr = ['&maptype=' maptype ];
+% if ~isempty(apiKey)
+%     keyStr = ['&key=' apiKey];
+% else
+%     keyStr = '';
+% end
+% markers = '&markers=';
+% for idx = 1:length(markerlist)
+%     if idx < length(markerlist)
+%         markers = [markers markerlist{idx} '%7C'];
+%     else
+%         markers = [markers markerlist{idx}];
+%     end
+% end
+% 
+% if showLabels == 0
+%     if ~isempty(style)
+%         style = [style '&style='];
+%     end
+%     style = [style 'feature:all|element:labels|visibility:off'];
+% end
+% 
+% if ~isempty(language)
+%     languageStr = ['&language=' language];
+% else
+%     languageStr = '';
+% end
+%     
+% if ismember(maptype,{'satellite','hybrid'})
+%     filename = 'tmp.jpg';
+%     format = '&format=jpg';
+%     convertNeeded = 0;
+% else
+%     filename = 'tmp.png';
+%     format = '&format=png';
+%     convertNeeded = 1;
+% end
+% sensor = '&sensor=false';
+% 
+% if ~isempty(style)
+%     styleStr = ['&style=' style];
+% else
+%     styleStr = '';
+% end
+%
+%url = [preamble location zoomStr sizeStr maptypeStr format markers languageStr sensor keyStr styleStr];
 
-if showLabels == 0
-    if ~isempty(style)
-        style = [style '&style='];
-    end
-    style = [style 'feature:all|element:labels|visibility:off'];
-end
+preamble = ['https://open.mapquestapi.com/staticmap/v4/getplacemap?key=', char(apiKey)];
+location = ['&location=' num2str(lat,10) ',' num2str(lon,10)];
+sizeStr  = ['&size=' num2str(width) ',' num2str(height)];
+zoomStr  = ['&zoom=' num2str(zoomlevel)];
 
-if ~isempty(language)
-    languageStr = ['&language=' language];
-else
-    languageStr = '';
-end
-    
-if ismember(maptype,{'satellite','hybrid'})
-    filename = 'tmp.jpg';
-    format = '&format=jpg';
-    convertNeeded = 0;
-else
-    filename = 'tmp.png';
-    format = '&format=png';
-    convertNeeded = 1;
-end
-sensor = '&sensor=false';
+filename = 'tmp.jpg';
+convertNeeded = 0;
 
-if ~isempty(style)
-    styleStr = ['&style=' style];
-else
-    styleStr = '';
-end
-
-url = [preamble location zoomStr sizeStr maptypeStr format markers languageStr sensor keyStr styleStr];
+url = [preamble location sizeStr zoomStr];
 
 % Get the image
 if useTemp
@@ -452,7 +467,7 @@ catch % error downloading map
         'Matlab error was: %s\n\n' ...
         'Possible reasons: missing write permissions, no network connection, quota exceeded, or some other error.\n' ...
         'Consider using an API key if quota problems persist.\n\n' ...
-        'To debug, try pasting the following URL in your browser, which may result in a more informative error:\n%s']);
+        'To debug, try pasting the following URL in your browser, which may result in a more informative error:\n%s'], lasterr, url);
     varargout{1} = [];
     varargout{2} = [];
     varargout{3} = [];
@@ -460,7 +475,8 @@ catch % error downloading map
 end
 
 [M, Mcolor] = imread(filepath);
-Mcolor = uint8(Mcolor * 255);
+%Mcolor = uint8(Mcolor * 255);
+
 %M = cast(M,'double');
 delete(filepath); % delete temp file
 width = size(M,2);
@@ -670,7 +686,7 @@ for idx = 1:length(axes_objs)
         if ~sum(strcmpi(params, 'Axis'))
             params = [params, {'Axis', axes_objs(idx)}];
         end
-        plot_google_map(params{:});
+        plot_osm_map(params{:});
     end
 end
 
