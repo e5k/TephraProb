@@ -237,3 +237,4 @@ end
 
 % Save matrices
 save([project.run_pth, 'DATA', filesep, 'dataProb', '.mat'], 'dataProb');
+disp('- Done!');
