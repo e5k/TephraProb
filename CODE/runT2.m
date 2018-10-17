@@ -64,15 +64,21 @@ mod_pth = [pwd, filesep, 'MODEL', filesep, 'forward_src', filesep];
 % installed in c:\cygwin
 if ispc
     path1 = getenv('PATH');
+    
+    % Retrieve architecture
     if strcmp(computer('arch'), 'win64')
         pathC = 'C:\cygwin64\bin';
     elseif strcmp(computer('arch'), 'win32')
         pathC = 'C:\cygwin\bin';
     end
-        
-    if isempty(regexp(path1,pathC,'once'))
-        if isdir(pathC)
-            setenv('PATH', [path1,';',pathC]);
+    
+    % Check if path exists
+    if ~exist(pathC, 'dir') == 7
+        % Check if the path to cygwin has already been saved
+        if exist('CODE/VAR/cygwin.mat', file)
+            load('CODE/VAR/cygwin.mat', 'pathC');
+            
+        % If not, retrieve it
         else
             choice = questdlg('Did you already install CYGWIN?', ...
                 'CYGWIN', ...
@@ -82,12 +88,17 @@ if ispc
                 case 'Yes'
                     sprintf('Select the cygwin\bin directory\n');
                     pathC = uigetdir('C:\', 'Select the cygwin\bin directory');
-                    setenv('PATH', [path1,';',pathC]);
+                    save('CODE/VAR/cygwin.mat', 'pathC');
                 case 'No'
                     url('https://cygwin.com/install.html');
                     return
             end
         end
+    end
+    
+    % Check if the cygwin path is already in the environment
+    if isempty(strfind(path1,pathC))
+        setenv('PATH', [path1,pathC,';']);
     end
 else
     pathC = [];
@@ -95,12 +106,13 @@ end
         
 
 % Compiles the model and runs it
+disp('Compiling Tephra2...')
 cd(mod_pth);                            % Navigates to the makefile
 system('make clean');
 [stat, cmd_out] = system('make');       % Compiles TEPHRA2
 
 if stat == 0                            % If compilation ok
-    %system('chmod 
+    disp('Compiling done!')
     cd(pth);
     runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
 else
@@ -217,7 +229,10 @@ else
     end
     
 end
-delete('plume2.dat', 'node_');
+if exist('plume2.dat', 'file')
+    delete('plume2.dat', 'node_');
+end
+
 disp('Modelling finished!');
 
 function line_out = check_line(tline,pathC)
