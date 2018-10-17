@@ -120,7 +120,7 @@ for iR = 1:length(runs)
         dataT2 = permute(dataT2, [2,1,3]); % Permute
     end
     fprintf('- Saving project file\n');
-    save([project.run_pth, 'DATA', filesep, 'dataT2_', runs{iR}, '.mat'], 'dataT2')
+    save([project.run_pth, 'DATA', filesep, 'dataT2_', runs{iR}, '.mat'], 'dataT2', '-v7.3')
     close(wb)  
 end
 
