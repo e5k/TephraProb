@@ -57,6 +57,7 @@ end
 
 folder  = wind.folder;
 
+
 in_path = fullfile(folder, 'nc');     % Set main path for nc files
 out_path= fullfile(folder, 'ascii');    % Set main path for generated profiles
 
@@ -105,7 +106,7 @@ if ~isempty(regexp(wind.db, 'Reanalysis', 'ONCE'))
         % dataset and the NC file
         [~,~,timeI] = intersect(datenum(stor_time),datenum(TIME));
         
-        fprintf('\tInterpolating and writing ascii files\n')
+        fprintf('\tInterpolating and writing ascii files, please wait...\n')
         for iT = 1:length(timeI)
             for iL = 1:17
                 % Interpolate to vent coordinates
@@ -128,23 +129,36 @@ if ~isempty(regexp(wind.db, 'Reanalysis', 'ONCE'))
     
 % Case ECMWF ERA-Interim Offline    
 elseif strcmp(wind.db, 'InterimOff')
-    
+    in_path     = wind.ncDir;
     fl          = dir(fullfile(in_path, '*.nc'));
     stor        = struct;
     
+    fprintf('Reading .nc files\n');
     for i = 1:length(fl)
+        
+        stor(i).LAT       = ncread(fullfile(in_path, fl(i).name), 'latitude');
+        stor(i).LON       = ncread(fullfile(in_path, fl(i).name), 'longitude');
+        
+        % Find vent coordinates
+       if i==1
+            latI(1) = find(stor(i).LAT == wind.lat_min);
+            latI(2) = find(stor(i).LAT == wind.lat_max);
+            latI = fliplr(latI);
+            lonI(1) = find(stor(i).LON == wind.lon_min);
+            lonI(2) = find(stor(i).LON == wind.lon_max);           
+        end
+    
         stor(i).HGT       = ncread(fullfile(in_path, fl(i).name), 'z')/9.80665;
         stor(i).UWND      = ncread(fullfile(in_path, fl(i).name), 'u'); 
         stor(i).VWND      = ncread(fullfile(in_path, fl(i).name), 'v'); 
-        stor(i).LAT       = ncread(fullfile(in_path, fl(i).name), 'latitude');
-        stor(i).LON       = ncread(fullfile(in_path, fl(i).name), 'longitude');
-        stor(i).time      = double(ncread(fullfile(in_path, fl(i).name), 'time'))/24 + datenum(1900,1,1,0,0,0);           
+        stor(i).time      = double(ncread(fullfile(in_path, fl(i).name), 'time'))/24 + datenum(1900,1,1,0,0,0);         
     end
     
     % Do some tests to see if the timestamp is correct
-    time    = [stor.time];
-    minTime = min(min([stor.time],[],1));
-    maxTime = max(max([stor.time],[],2));
+    time    = cat(1,stor.time);
+    minTime = stor(1).time(1);
+    maxTime = stor(i).time(end);
+
     
     % Check if the maximum time from downloaded data is equal to the
     % theoretical maximum time based on the time dimension
@@ -170,13 +184,13 @@ elseif strcmp(wind.db, 'InterimOff')
     stor_data   = zeros(length(37), 3, length(stor_time));           % Main storage matrix
     tI          = 1; % Time index used to fill the storage matrix
     
-    fprintf('\tInterpolating and writing ascii files\n')
+    fprintf('\tInterpolating and writing ascii files, please wait...\n')
     for iT = 1:size(UWND,4)     % Loop through time
         for iL = 1:size(UWND,3)   % Loop through levels
             % Interpolate to vent coordinates
-            u   = intVent(UWND, stor(i).LON, stor(i).LAT, [1, length(stor(i).LAT)], [1, length(stor(i).LON)], wind, iL, iT);
-            v	= intVent(VWND, stor(i).LON, stor(i).LAT, [1, length(stor(i).LAT)], [1, length(stor(i).LON)], wind, iL, iT);
-            z   = intVent(HGT, stor(i).LON, stor(i).LAT, [1, length(stor(i).LAT)], [1, length(stor(i).LON)], wind, iL, iT);
+            u   = intVent(UWND, stor(i).LON, stor(i).LAT, latI, lonI, wind, iL, iT);
+            v	= intVent(VWND, stor(i).LON, stor(i).LAT, latI, lonI, wind, iL, iT);
+            z   = intVent(HGT, stor(i).LON, stor(i).LAT,  latI, lonI, wind, iL, iT);
 
             speed   = sqrt(u.^2+v.^2);                                  % Wind speed
             angle   = atan2d(u,v);                                      % Wind direction
@@ -187,6 +201,7 @@ elseif strcmp(wind.db, 'InterimOff')
         dlmwrite(fullfile(out_path, [num2str(tI, '%05i'), '.gen']), sortrows(stor_data(:,:,tI),1), 'delimiter', '\t', 'precision', 5);     % Write the wind file
         tI = tI+1;
     end  
+    disp('Done!')
     
 % Case ECMWF ERA-Interim Online
 else   
@@ -208,7 +223,7 @@ else
         LAT       = ncread(fullfile(in_path, nc), 'latitude');
         LON       = ncread(fullfile(in_path, nc), 'longitude'); %LON(LON>180) = LON(LON>180)-360;
                
-        fprintf('\tInterpolating and writing ascii files\n')
+        fprintf('\tInterpolating and writing ascii files, please wait...\n')
         for iT = 1:size(UWND,4)     % Loop through time
             for iL = 1:size(UWND,3)   % Loop through levels
                 % Interpolate to vent coordinates
@@ -233,6 +248,8 @@ save(fullfile(folder,'wind.mat'), 'wind', 'stor_data', 'stor_time');        % Sa
 
 
 function val = intVent(VAR, LON, LAT, latI, lonI, wind, iL, iT)
+% FYI: NetCDF file come in format [LON, LAT]. No need to transpose the
+% matrix, the interpolation is done accordingly
 val = interp2(repmat(LON(lonI(1):lonI(2))',length(latI(1):latI(2)),1), ...
     repmat(LAT(latI(1):latI(2)), 1, length(lonI(1):lonI(2))),...
     VAR(lonI(1):lonI(2),latI(1):latI(2), iL, iT), ...

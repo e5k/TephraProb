@@ -37,7 +37,8 @@ function tephraProb
 
 %vers = '1.5.4';     % Can open multiple figures, attempt to fix the cygwin problem;
 %vers = '1.6.1';     % Oct 2018 Added Google Earth export
-vers = '1.6.2';     % Oct 2018 Checked windows compatibility
+%vers = '1.6.2';     % Oct 2018 Checked windows compatibility
+vers = '1.6.3';     % Oct 2018 Fixed problems with ERA-Interim offline
 
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')

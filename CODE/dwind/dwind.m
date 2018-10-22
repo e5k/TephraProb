@@ -407,7 +407,7 @@ wind.mt_e    = mts{get(w.wind3_e_month, 'Value')};
 
 
 % Define extent
-if strcmp(wind.db, 'Interim')
+if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'InterimOff')
     interv = 0.25;
 else
     interv = 2.5;
@@ -444,16 +444,9 @@ mkdir(fullfile(wind.folder, 'ascii'));
 
 % In case ERA offline, retrieve netcdf files
 if strcmp(wind.db, 'InterimOff')
-    [flname, pthname,] = uigetfile( ...
-    '*.nc', 'Choose ERA-Interim .nc files', 'MultiSelect', 'on');
-
-    if ischar(flname)
-        flname = {flname};
-    end
-    
-    for i = numel(flname)
-        movefile(fullfile(pthname, flname{i}), fullfile(wind.folder, 'nc', flname{i})),
-    end
+    fprintf('Select folder containing the ERA-Interim .nc files\n');
+    wind.ncDir = uigetdir( ...
+    'Select folder containing the ERA-Interim .nc files');
 end
 
 save(fullfile(wind.folder, 'wind.mat'),'wind')
