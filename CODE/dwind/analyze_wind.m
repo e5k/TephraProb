@@ -317,10 +317,185 @@ w2.fig = figure(...
             'ForegroundColor', [.9 .5 .0],...
             'String', 'Zoom/export',...
             'Callback', @PREP_DATA);
-
+        
+        w2.m = uimenu(w2.fig,'Text','Tools');
+           uimenu(w2.m,'Text','Find similar profile', 'Callback', @similar);
+        
         average_whole(0);
 
 %% Callback functions
+
+function similar(~, ~)
+global w2 stor_data stor_time
+
+if w2.type_roses.Value == 1 || w2.subtype_separate == 1
+    errordlg('To use this function, you must plot averaged profiles')
+    return
+end
+
+% Check if user data already defined
+if isfield(w2.fig.UserData, 'hts')
+    inpt = w2.fig.UserData.hts;
+else
+    inpt = {'1','30'};
+end
+
+answer = inputdlg({'Minimum height (km asl)', 'Maximum height (km asl)'},...
+    'Heights',...
+    [1 35],...
+    inpt);
+
+% Filter elevation
+alt     = mean(stor_data(:,1,:),3)./1e3;
+aIdx    = alt >= str2double(answer{1}) & alt <= str2double(answer{2});
+
+% Filter time
+if strcmp(w2.time.SelectedObject.String, 'All')
+    tIdx    = ones(size(stor_time,1), 1);
+elseif strcmp(w2.time.SelectedObject.String, 'Years')
+    sel_val = get(w2.subtime_table, 'Value');
+    sel_str = get(w2.subtime_table, 'String');
+    tIdx    = str2double(sel_str(sel_val));
+    tIdx    = sum(stor_time(:,1) == tIdx,2);
+elseif strcmp(w2.time.SelectedObject.String, 'Months')
+    tIdx    = w2.subtime_table.Value;
+    tIdx    = sum(stor_time(:,2) == tIdx,2);
+end
+
+% Filter data
+data_tmp = stor_data(aIdx, 2:3, logical(tIdx));
+time_tmp = stor_time(logical(tIdx), :);
+time_idx = 1:size(stor_time,1);
+
+% Retrieve averaged data from plots
+vel = w2.s1.Children(1).XData'; vel = vel(aIdx);
+dir = w2.s2.Children(1).XData'; dir = dir(aIdx);
+
+% Calculate the RMSE
+% Shitty loop to correct the direction
+for i = 1:size(data_tmp,3)
+    data_tmp(data_tmp(:,2,i)>180,2,i) = -(360-data_tmp(data_tmp(:,2,i)>180,2,i));
+end
+
+velRMSE = squeeze(sqrt((sum(data_tmp(:,1,:)-vel,1).^2)/numel(aIdx)));
+dirRMSE = squeeze(sqrt((sum(data_tmp(:,2,:)-dir,1).^2)/numel(aIdx)));
+sqr = velRMSE.^2 + dirRMSE.^2;
+[~, idx] = sort(sqr);
+
+windNb      = cellstr(num2str(time_idx(idx)','%05.0f'));
+windTime    = cellstr(datestr(time_tmp(idx,:), 'yyyy-mm-dd hhz'));
+
+scr = get(0,'ScreenSize');
+w   = 250;
+h   = 350;
+
+
+w3.fig = figure(...
+    'position', [scr(3)/2-w/2 scr(4)/2-h/2 w h],...
+    'Color', [.25 .25 .25],...
+    'Resize', 'off',...
+    'Tag', 'Configuration',...
+    'Toolbar', 'none',...
+    'Menubar', 'none',...
+    'Name', 'Similar wind profiles',...
+    'NumberTitle', 'off');
+
+    w3.pan = uipanel(...
+        'units', 'normalized',...
+        'position', [.03 .03 .94 .94],...
+        'title', 'Profile selection',...
+        'BackgroundColor', [.25 .25 .25],...
+        'ForegroundColor', [.9 .5 0],...
+        'HighlightColor', [.9 .5 0],...
+        'BorderType', 'line');
+    
+    w3.tbl = uicontrol(...
+                    'style', 'listbox',...
+                    'Parent', w3.pan,...
+                    'units', 'normalized',...
+                    'position', [.05 .2 .9 .6],...
+                    'BackgroundColor', [.3 .3 .3],...
+                    'ForegroundColor', [1 1 1],...
+                    'Max', 100,...
+                    'String', strcat(windTime(1:100), ' -  ', windNb(1:100), '.gen'));
+                
+                
+    w3.plot = uicontrol(...
+        'style', 'pushbutton',...
+        'parent', w3.pan,...
+        'units', 'normalized',...
+        'position', [.525 .025 .425 .15],...
+        'BackgroundColor', [.3 .3 .3],...
+        'ForegroundColor', [.9 .5 .0],...
+        'String', 'Plot',...
+        'Callback', @pltSim);
+    
+    w3.clear = uicontrol(...
+        'style', 'pushbutton',...
+        'parent', w3.pan,...
+        'units', 'normalized',...
+        'position', [.05 .025 .425 .15],...
+        'BackgroundColor', [.3 .3 .3],...
+        'ForegroundColor', [.9 .5 .0],...
+        'String', 'Clear',...
+        'Callback', @pltSim);
+
+data2plot = stor_data(:,:,time_idx(idx(1:100)));
+    
+w3data.idx = idx(1:100);
+w3data.windNb = windNb(1:100);
+w3data.data = data2plot;
+guidata(w3.fig, w3data);
+
+function pltSim(~, eventdata)
+global w2
+
+data = guidata(w2.fig);
+
+if isempty(findobj('tag','similar'))
+    delete(findobj('tag','similar'))
+end
+
+f = figure('tag', 'similar');
+ax1 = subplot(1,2,1, 'tag','ax1');
+errorbar_x(data(:,2,1), data(:,1,1)./1000, data(:,2,2), data(:,2,3));
+title('Wind velocity','FontWeight','Bold');
+xlabel('Velocity (m/s)');
+ylabel('Height (km)');
+hold on
+
+ax2 = subplot(1,2,2, 'tag','ax2');
+errorbar_x(data(:,3,1), data(:,1,1)./1000, data(:,3,2), data(:,3,3));
+title('Wind direction','FontWeight','Bold');
+xlabel('Direction (degrees)');
+ylabel('Height (km)');
+hold on
+
+a1 = get(ax1, 'Children');
+set(a1(1), 'Color', [0 0 0], 'LineWidth', 1); set(a1(2), 'Color', [.7 .7 .7]);
+ax1.YLim(1)=0;
+a2 = get(ax2, 'Children');
+set(a2(1), 'Color', [0 0 0], 'LineWidth', 1); set(a2(2), 'Color', [.7 .7 .7]);
+ax2.YLim(1)=0;
+
+
+
+
+
+[~,w3] = gcbo;
+dataw3 = guidata(w3);
+lst = findobj(w3, 'Style', 'listbox');
+lstI = lst.Value;
+
+cmap = lines(numel(lstI));
+
+for i = 1:numel(lstI)
+    plot(ax1, dataw3.data(:,2,lstI(i)), dataw3.data(:,1,lstI(i))./1000);
+    plot(ax2, dataw3.data(:,3,lstI(i)), dataw3.data(:,1,lstI(i))./1000);
+end
+
+
+
 % Selection change function for type pannel
 function TYPE_SCF(~, eventdata)
 global w2
@@ -520,6 +695,8 @@ else
     dout(:,:,3) = std(tmp, 0, 3);
 end
 
+guidata(w2.fig, dout);
+
 plot_profile_all(dout, trgt)
 
 % Prepare data for separate profiles
@@ -595,7 +772,7 @@ else
     clr = [1 1 1]; siz = 8;
 end
 
-w2.s1 = subplot(1,2,1, 'units', 'normalized', 'Parent', prnt, 'position', pos1, 'XColor', clr, 'YColor', clr, 'FontSize', siz); 
+w2.s1 = subplot('position', pos1, 'units', 'normalized', 'Parent', prnt,  'XColor', clr, 'YColor', clr, 'FontSize', siz); 
 plot(data(:,2), data(:,1)./1000, 'Color', 'k', 'LineWidth', 1);
 title('Wind velocity','FontWeight','Bold', 'Color', clr, 'FontSize', siz);
 xlabel('Velocity (m/s)', 'Color', clr, 'FontSize', siz);
@@ -603,7 +780,7 @@ ylabel('Height (km)', 'Color', clr, 'FontSize', siz);
 axis([0 40 YMIN YMAX]);
 set(w2.s1, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
 
-w2.s2 = subplot(1,2,2, 'units', 'normalized', 'Parent',prnt, 'position', pos2, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
+w2.s2 = subplot('position', pos2, 'units', 'normalized', 'Parent',prnt, 'XColor', clr, 'YColor', clr, 'FontSize', siz);
 plot(data(:,3), data(:,1)./1000, 'Color', 'k', 'LineWidth', 1);
 title('Wind direction','FontWeight','Bold', 'Color', clr, 'FontSize', siz);
 xlabel('Direction (degrees)', 'Color', clr, 'FontSize', siz);
