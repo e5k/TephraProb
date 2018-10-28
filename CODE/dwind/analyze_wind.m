@@ -328,10 +328,13 @@ w2.fig = figure(...
 function similar(~, ~)
 global w2 stor_data stor_time
 
-if w2.type_roses.Value == 1 || w2.subtype_separate == 1
+if w2.type_roses.Value == 1 || w2.subtype_separate.Value == 1
     errordlg('To use this function, you must plot averaged profiles')
     return
 end
+
+% Make sure the data is ploted
+PREP_DATA(w2.plot);
 
 % Check if user data already defined
 if isfield(w2.fig.UserData, 'hts')
@@ -345,6 +348,10 @@ answer = inputdlg({'Minimum height (km asl)', 'Maximum height (km asl)'},...
     [1 35],...
     inpt);
 
+if isempty(answer)
+    return
+end
+
 % Filter elevation
 alt     = mean(stor_data(:,1,:),3)./1e3;
 aIdx    = alt >= str2double(answer{1}) & alt <= str2double(answer{2});
@@ -355,7 +362,7 @@ if strcmp(w2.time.SelectedObject.String, 'All')
 elseif strcmp(w2.time.SelectedObject.String, 'Years')
     sel_val = get(w2.subtime_table, 'Value');
     sel_str = get(w2.subtime_table, 'String');
-    tIdx    = str2double(sel_str(sel_val));
+    tIdx    = str2double(sel_str(sel_val))';
     tIdx    = sum(stor_time(:,1) == tIdx,2);
 elseif strcmp(w2.time.SelectedObject.String, 'Months')
     tIdx    = w2.subtime_table.Value;
@@ -376,9 +383,10 @@ dir = w2.s2.Children(1).XData'; dir = dir(aIdx);
 for i = 1:size(data_tmp,3)
     data_tmp(data_tmp(:,2,i)>180,2,i) = -(360-data_tmp(data_tmp(:,2,i)>180,2,i));
 end
+dir(dir>180) = -(360-dir(dir>180));
 
 velRMSE = squeeze(sqrt((sum(data_tmp(:,1,:)-vel,1).^2)/numel(aIdx)));
-dirRMSE = squeeze(sqrt((sum(data_tmp(:,2,:)-dir,1).^2)/numel(aIdx)));
+dirRMSE = squeeze(sqrt((sum(abs(data_tmp(:,2,:)-dir),1).^2)/numel(aIdx)));
 sqr = velRMSE.^2 + dirRMSE.^2;
 [~, idx] = sort(sqr);
 
@@ -409,6 +417,16 @@ w3.fig = figure(...
         'HighlightColor', [.9 .5 0],...
         'BorderType', 'line');
     
+    w3.txt = uicontrol(...
+                'parent', w3.pan,...
+                'style', 'text',...
+                'units', 'normalized',...
+                'position', [.05 .8 .9 .15],...
+                'HorizontalAlignment', 'left',...
+                'BackgroundColor', [.25 .25 .25],...
+                'ForegroundColor', [1 1 1],...
+                'String', 'Select the profile(s) to plot. Profiles are ordered in decreasing similarity.');
+            
     w3.tbl = uicontrol(...
                     'style', 'listbox',...
                     'Parent', w3.pan,...
@@ -430,15 +448,15 @@ w3.fig = figure(...
         'String', 'Plot',...
         'Callback', @pltSim);
     
-    w3.clear = uicontrol(...
-        'style', 'pushbutton',...
-        'parent', w3.pan,...
-        'units', 'normalized',...
-        'position', [.05 .025 .425 .15],...
-        'BackgroundColor', [.3 .3 .3],...
-        'ForegroundColor', [.9 .5 .0],...
-        'String', 'Clear',...
-        'Callback', @pltSim);
+%     w3.clear = uicontrol(...
+%         'style', 'pushbutton',...
+%         'parent', w3.pan,...
+%         'units', 'normalized',...
+%         'position', [.05 .025 .425 .15],...
+%         'BackgroundColor', [.3 .3 .3],...
+%         'ForegroundColor', [.9 .5 .0],...
+%         'String', 'Clear',...
+%         'Callback', @pltSim);
 
 data2plot = stor_data(:,:,time_idx(idx(1:100)));
     
@@ -447,7 +465,7 @@ w3data.windNb = windNb(1:100);
 w3data.data = data2plot;
 guidata(w3.fig, w3data);
 
-function pltSim(~, eventdata)
+function pltSim(~, ~)
 global w2
 
 data = guidata(w2.fig);
@@ -477,10 +495,8 @@ ax1.YLim(1)=0;
 a2 = get(ax2, 'Children');
 set(a2(1), 'Color', [0 0 0], 'LineWidth', 1); set(a2(2), 'Color', [.7 .7 .7]);
 ax2.YLim(1)=0;
-
-
-
-
+ax2.XLim = [0, 359];
+ax2.XTick = [0,90,180,270];
 
 [~,w3] = gcbo;
 dataw3 = guidata(w3);
@@ -488,13 +504,11 @@ lst = findobj(w3, 'Style', 'listbox');
 lstI = lst.Value;
 
 cmap = lines(numel(lstI));
-
 for i = 1:numel(lstI)
-    plot(ax1, dataw3.data(:,2,lstI(i)), dataw3.data(:,1,lstI(i))./1000);
-    plot(ax2, dataw3.data(:,3,lstI(i)), dataw3.data(:,1,lstI(i))./1000);
+    hdl(i) = plot(ax1, dataw3.data(:,2,lstI(i)), dataw3.data(:,1,lstI(i))./1000, 'color', cmap(i,:));
+    plot(ax2, dataw3.data(:,3,lstI(i)), dataw3.data(:,1,lstI(i))./1000, 'color', cmap(i,:));
 end
-
-
+legend(hdl,cellstr(strcat(num2str(dataw3.idx(lstI),'%05.0f'),'.gen')), 'Location', 'SouthEast');
 
 % Selection change function for type pannel
 function TYPE_SCF(~, eventdata)
