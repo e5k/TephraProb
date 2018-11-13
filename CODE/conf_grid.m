@@ -788,11 +788,12 @@ elseif tmp.cross_zn == 1 && tmp.cross_eq == 1
 end
 
  
-[min_e, min_n]   = ll2utm(min_lat, min_lon, abs(tmp.vent_zone));
-[max_e, max_n]   = ll2utm(max_lat, max_lon, abs(tmp.vent_zone));
+[min_e, min_n]   = ll2utm(min_lat, min_lon, tmp.vent_zone);
+[max_e, max_n]   = ll2utm(max_lat, max_lon, tmp.vent_zone);
 
 if tmp.cross_eq == 1
-    min_n = -(1e7-min_n);
+    %min_n = -(1e7-min_n);
+    max_n = max_n+1e7;
 end
 
 x_vec = min_e : tmp.res : max_e;

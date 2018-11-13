@@ -141,7 +141,7 @@ l1 = lon/D0;			% Lambda = Longitude (rad)
 if isempty(zone)
 	F0 = round((l1*D0 + 183)/6);
 else
-	F0 = zone;
+	F0 = abs(zone);
 end
 
 B1 = A1*(1 - 1/F1);
