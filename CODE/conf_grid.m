@@ -733,6 +733,7 @@ function make_grid(tmp, dsp, sve)
 % dsp:          choose if display map or not
 % sve:          choose if save or not
 
+
 % Case 1: Do not cross zone nor equator
 if tmp.cross_zn == 0 && tmp.cross_eq == 0
     [TL_lat, TL_lon] = utm2ll(tmp.min_east, tmp.max_north, tmp.zone);
@@ -791,10 +792,13 @@ end
 [min_e, min_n]   = ll2utm(min_lat, min_lon, tmp.vent_zone);
 [max_e, max_n]   = ll2utm(max_lat, max_lon, tmp.vent_zone);
 
-if tmp.cross_eq == 1 && tmp.vent_zone < 0
-    max_n = max_n+1e7;
-else
-    min_n = -(1e7-min_n);
+% Correction for the southern hemisphere
+if tmp.cross_eq == 1 
+    if tmp.vent_zone < 0
+        max_n = max_n+1e7;
+    else
+        min_n = -(1e7-min_n);
+    end
 end
 
 x_vec = min_e : tmp.res : max_e;
