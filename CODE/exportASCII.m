@@ -82,7 +82,7 @@ for iT = 1:length(r1)       % Type of file
                     tmp = dataT2(:,:,i);
                     fl  = [num2str(i, '%04.0f'), '.txt'];
                     if r2(iF) == 1 % Columns
-                        dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t');
+                        dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t', 'precision', 8);
                     elseif r2(iF) == 2 % Grid
                         dlmwrite(fullfile(target, fl), tmp, 'delimiter', '\t');
                     elseif r2(iF) == 3 % RASTER
@@ -96,9 +96,9 @@ for iT = 1:length(r1)       % Type of file
                     tmp = dataProb.prob.(project.seasons{iS})(:,:,i);
                     fl  = ['prob_', project.seasons{iS}, '_', num2str(dataProb.massT(i)), '_kgm2.txt'];
                     if r2(iF) == 1 % Columns
-                        dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t');
+                        dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t', 'precision', 8);
                     elseif r2(iF) == 2 % Grid
-                        dlmwrite(fullfile(target, fl), tmp, 'delimiter', '\t');
+                        dlmwrite(fullfile(target, fl), tmp, 'delimiter', '\t', 'precision', 8);
                     elseif r2(iF) == 3 % RASTER
                         writeDEM(fullfile(target, fl), XX, YY, tmp);
                     end
@@ -110,9 +110,9 @@ for iT = 1:length(r1)       % Type of file
                     tmp = dataProb.IM.(project.seasons{iS})(:,:,i);
                     fl  = ['IM_', project.seasons{iS}, '_', num2str(dataProb.probT(i)), '_kgm2.txt'];
                     if r2(iF) == 1 % Columns
-                        dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t');
+                        dlmwrite(fullfile(target, fl), [UTM, reshape(tmp, numel(XX),1)], 'delimiter', '\t', 'precision', 8);
                     elseif r2(iF) == 2 % Grid
-                        dlmwrite(fullfile(target, fl), tmp, 'delimiter', '\t');
+                        dlmwrite(fullfile(target, fl), tmp, 'delimiter', '\t', 'precision', 8);
                     elseif r2(iF) == 3 % RASTER
                         writeDEM(fullfile(target, fl), XX, YY, tmp);
                     end

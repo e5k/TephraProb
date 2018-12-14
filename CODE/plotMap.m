@@ -145,8 +145,7 @@ for i = 1:length(s)
         colormap(cmap);
     else
         cmapT = flipud(eval(cmap));
-        cmap  = cmapT;
-        colormap(cmap);
+        colormap(cmapT);
     end
     
     [c,h]       = contour(XX,YY,file,ctVal, 'Color', 'k');

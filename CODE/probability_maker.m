@@ -57,7 +57,7 @@ end
 runs = project.seasons;
 
 % Check if model was run
-if isempty(dir(fullfile(project.run_pth, 'OUT', 'all', '1', '*.out')))    
+if isempty(dir(fullfile(project.run_pth, 'OUT', 'all', '1', '*.out*')))    
     errordlg('No output file found. Did you already run the model?', ' ');
     return
 end
@@ -94,11 +94,16 @@ for iR = 1:length(runs)
     for j = 1:nbRuns
         if strcmp(folds(j).name, '.') || strcmp(folds(j).name, '..') || strcmp(folds(j).name, '.DS_Store')
         else
-            files = dir(fullfile(project.run_pth, 'OUT', runs{iR}, folds(j).name, '*.out'));
+            files = dir(fullfile(project.run_pth, 'OUT', runs{iR}, folds(j).name, '*.out*'));
             
             for k = 1:length(files)
                 tmpF        = dlmread(fullfile(project.run_pth, 'OUT',runs{iR}, folds(j).name, files(k).name));
-                dataT2(:,j) = dataT2(:,j)+tmpF(:,4);
+                % Test if output file is of same size
+                if size(tmpF,1) == size(dataT2,1)
+                    dataT2(:,j) = dataT2(:,j)+tmpF(:,4);
+                else
+                    warning('There is a problem with simulation %i of run %i (should have %i points, has %i). Skipping it...', k, j, size(dataT2,1), size(tmpF,1))
+                end
             end
         end
         waitbar(j/nbRuns);
