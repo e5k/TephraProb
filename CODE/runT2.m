@@ -98,28 +98,50 @@ if ispc
     
     % Check if the cygwin path is already in the environment
     if isempty(strfind(path1,pathC))
-        setenv('PATH', [path1,pathC,';']);
+        setenv('PATH', [path1,';',pathC,';']);
     end
+    
+    if ~exist([pwd, filesep, 'MODEL', filesep, 'tephra2-2012.exe'], 'file')
+        warning('You need to manually compile Tephra2 on Cygwin!')
+        fprintf('\t1. Open the Cygwin terminal\n')
+        fprintf('\t2. Navigate to TephraProb\\MODEL\\ and type: \n')
+        fprintf('\t\t make clean\n')
+        fprintf('\t3. Then, type:\n')
+        fprintf('\t\t make\n')
+        fprintf('\t4. Once finished, type:\n')
+        fprintf('\t\t chmod 755 tephra2-2012.exe\n')
+        fprintf('\t5. To test the compilation, type:\n')
+        fprintf('\t\t ./tephra2-2012.exe\n')
+        fprintf('\tYou should see:\n')
+        fprintf('\t\t Missing comand line arguments,\n')
+        fprintf('\t\t USAGE: <program name> <config file> <points file> <wind file> <file of grain sizes>')
+        return
+    else
+        cd(pth);
+        runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
+    end
+    
+% If UNIX
 else
     pathC = [];
+    % Compiles the model and runs it
+    disp('Compiling Tephra2...')
+    cd(mod_pth);                            % Navigates to the makefile
+    system('make clean');
+    [stat, cmd_out] = system('make');       % Compiles TEPHRA2
+    
+    if stat == 0                            % If compilation ok
+        disp('Compiling done!')
+        cd(pth);
+        runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
+    else
+        cd(pth);
+        errordlg('There was a problem compiling TEPHRA2...', ' ');
+        display(cmd_out);
+    end
 end
         
 
-% Compiles the model and runs it
-disp('Compiling Tephra2...')
-cd(mod_pth);                            % Navigates to the makefile
-system('make clean');
-[stat, cmd_out] = system('make');       % Compiles TEPHRA2
-
-if stat == 0                            % If compilation ok
-    disp('Compiling done!')
-    cd(pth);
-    runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
-else
-    cd(pth);
-    errordlg('There was a problem compiling TEPHRA2...', ' ');
-    display(cmd_out);
-end
 
 
 function runit(run_pth, par, cores, pathC)
