@@ -16,7 +16,7 @@ mkdir(fullfile(project.run_pth, 'DATA'));
 runs = project.seasons;
 
 % Check if model was run
-if isempty(dir(fullfile(project.run_pth, 'OUT', 'all', '1', '*.out')))    
+if isempty(dir(fullfile(project.run_pth, 'OUT', 'all', '1', '*.out*')))    
     errordlg('No output file found. Did you already run the model?', ' ');
     return
 end

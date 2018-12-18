@@ -402,7 +402,10 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                             tmp_wind = fullfile(data.wind_pth, [num2str(wind_vec(j), '%05d'), '.gen']);
                             tmp_gs   = fullfile(out_pth, 'GS', seas_str{seas}, [num2str(i, '%04d'), '.gsd']);
                             tmp_out  = fullfile(out_pth, 'OUT', seas_str{seas}, num2str(i), [data.out_name, '_', num2str(j, '%04d'), '.out']);
-                            fprintf(fid_T2, '%s %s %s %s %s > %s\n', tmp_model, tmp_conf, data.grid_pth, tmp_wind, tmp_gs, tmp_out);
+                            
+                            T2_line = sprintf('%s %s %s %s %s > %s', tmp_model, tmp_conf, data.grid_pth, tmp_wind, tmp_gs, tmp_out);
+                            T2_line = strrep(T2_line, '\', '/');
+                            fprintf(fid_T2, '%s\n', T2_line);
                         end
                     end
                 else

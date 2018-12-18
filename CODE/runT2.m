@@ -44,17 +44,22 @@ end
 % Retrieve path
 pth     = pwd;
 project = load_run;
+
+% Retrieve run parameters
+fl = dir([project.run_pth, '*.mat']);
+load(fullfile(project.run_pth, fl(1).name), 'data');
+
 if project.run_pth == -1
     return
-    
-elseif length(dir([project.run_pth, 'CONF/all/'])) == 2
-    warndlg('No configuration file exist for this project. Please re-run the sampling of ESPs specifying the write_conf_files = 1');
+elseif data.write_conf == 0     % length(dir([project.run_pth, 'CONF/all/'])) == 2
+    warndlg('No configuration file exist for this project. Please re-run the sampling of ESPs specifying the write_conf = 1');
     return
-    
-elseif length(dir([project.run_pth, 'GS/all/'])) == 2
+elseif data.write_gs == 0     % length(dir([project.run_pth, 'GS/all/'])) == 2
     warndlg('No grainsize file exist for this project. Please re-run the sampling of ESPs specifying the write_gs_files = 1');
     return
 end
+
+clear data
 
 mod_pth = [pwd, filesep, 'MODEL', filesep, 'forward_src', filesep];
 
@@ -273,21 +278,19 @@ if ispc
     pth_tmp = pwd;                              % Retrieve path
     pth_tmp(regexp(pth_tmp, '\')) = '/';        
     pth_tmp(regexp(pth_tmp, ':')) = [];
-    
-    idx = regexp(tline, '\');
-    tline(idx) = '/';
-    
+
     % Split the command line and add the cygdrive path
     tline_split = strsplit(tline, ' ');
     for i = [2,3,4,5,7]
-        tline_split{i} = ['/cygdrive/', pth_tmp, '/', tline_split{i}];
+        tline_split{i} = regexprep(['/cygdrive/', pth_tmp, '/', tline_split{i}],'\s+','');
     end
     
     % Concatanates final command line for cygwin
     tline = [tline_split{2}, ' ', tline_split{3}, ' ', tline_split{4}, ' ', tline_split{5}, ' > ', tline_split{7}];
-    
     [s,e] = regexp(tline, './MODEL/tephra2-2012');
     tline(s:e) = [];
+    tline = strrep(tline, '\', '/');
+    
     line_out = [pathC, ' --login -c "/cygdrive/', pth_tmp, '/MODEL/./tephra2-2012.exe ', tline, '"'];
 else
     line_out = tline;
