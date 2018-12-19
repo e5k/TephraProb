@@ -318,8 +318,8 @@ w2.fig = figure(...
             'String', 'Zoom/export',...
             'Callback', @PREP_DATA);
         
-        w2.m = uimenu(w2.fig,'Text','Tools');
-           uimenu(w2.m,'Text','Find similar profile', 'Callback', @similar);
+        w2.m = uimenu(w2.fig,'Label','Tools');
+           uimenu(w2.m,'Label','Find similar profile', 'Callback', @similar);
         
         average_whole(0);
 
