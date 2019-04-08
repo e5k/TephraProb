@@ -46,6 +46,7 @@ if nargin == 0  % -> called from GUI
                         'SelectionMode','multiple');
     else
         warndlg('You have not computed hazard curves yet!');
+        return
     end
 
 else % -> called from another function

@@ -145,7 +145,7 @@ else
         pth = fullfile('GRID', project.grd_pth, [project.grd_pth, '.points']);
     else
         fprintf('\t SELECT the .points file\n')
-        [fl,pth] = uigetfile('*.points','Select the .points file with the coordinates');
+        [fl,pth] = uigetfile('GRID/*.points','Select the .points file with the coordinates');
         if fl == 0; return
         else pth = fullfile(pth, fl);
         end
