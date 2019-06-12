@@ -281,7 +281,9 @@ w.wind6_dataset = uicontrol(...
     'position', [.1 .2 .8 .3],...
     'ForegroundColor', [.75 .75 .75],...
     'BackgroundColor', [.35 .35 .35],...
-    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA5', 'ECMWF ERA-Interim (offline)', 'ECMWF ERA5 (offline)'});
+    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA-Interim (offline)'});
+
+%     'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA5', 'ECMWF ERA-Interim (offline)', 'ECMWF ERA5 (offline)'});
 
 w.wind6_txt = uicontrol(...
     'parent', w.wind6,...
@@ -357,7 +359,7 @@ else          % Reanalysis 2 or ERA-Interim
     yrs = arrayfun(@num2str, 1979:yr, 'UniformOutput', false);
 end
 
-if get(hObject, 'Value') == 5       % If processing offline ERA-Interim
+if get(hObject, 'Value') == 4       % If processing offline ERA-Interim
     set(w.wind5_but_download, 'String', 'Process');
     set(w.wind3_s_year, 'Enable', 'off');
     set(w.wind3_e_year, 'Enable', 'off');
