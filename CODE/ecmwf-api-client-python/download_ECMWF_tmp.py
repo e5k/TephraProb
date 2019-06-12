@@ -17,6 +17,7 @@ east        = var_east
 # Output folder, i.e. replace by your project name
 out_path    = 'var_out'
 
+CLASS 		= ECMWFclass
 
 
 ##################################################
@@ -58,7 +59,7 @@ for year in range(year_start, year_end+1):
             'levtype'   : "pl",
             'levelist'  : "all",
             'type'      : "an",
-            'class'     : "ei",
+            'class'     : CLASS,
             'grid'      : "0.25/0.25",
             'param'     : "129/131/132/156",
             'area'      : "%3.2f/%3.2f/%3.2f/%3.2f"%(north, west, south, east),

@@ -281,7 +281,7 @@ w.wind6_dataset = uicontrol(...
     'position', [.1 .2 .8 .3],...
     'ForegroundColor', [.75 .75 .75],...
     'BackgroundColor', [.35 .35 .35],...
-    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA-Interim (offline)'});
+    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA5', 'ECMWF (offline)'});
 
 w.wind6_txt = uicontrol(...
     'parent', w.wind6,...
@@ -357,7 +357,7 @@ else          % Reanalysis 2 or ERA-Interim
     yrs = arrayfun(@num2str, 1979:yr, 'UniformOutput', false);
 end
 
-if get(hObject, 'Value') == 4       % If processing offline ERA-Interim
+if get(hObject, 'Value') == 5       % If processing offline ERA-Interim
     set(w.wind5_but_download, 'String', 'Process');
     set(w.wind3_s_year, 'Enable', 'off');
     set(w.wind3_e_year, 'Enable', 'off');
@@ -394,7 +394,7 @@ wind.lat     = get(w.wind2_lat, 'String');
 wind.lon     = get(w.wind2_lon, 'String');
 wind.name    = get(w.wind4_name, 'String');
 
-db           = {'Reanalysis1', 'Reanalysis2', 'Interim', 'InterimOff'};
+db           = {'Reanalysis1', 'Reanalysis2', 'Interim', 'ERA5', 'InterimOff'};
 wind.db      = db{get(w.wind6_dataset, 'Value')};
 wind.int_ext = str2double(get(w.wind2_ext, 'String'));
 meth         = {'Linear', 'Nearest', 'Pchip', 'Cubic', 'Spline'};
@@ -454,7 +454,7 @@ save(fullfile(wind.folder, 'wind.mat'),'wind')
 
 %% DOWNLOAD DATA
 %% ERA-INTERIM
-if strcmp(wind.db, 'Interim')
+if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'ERA5')
 
     txt     = fileread('download_ECMWF_tmp.py');
     txt_new = strrep(txt, 'var_year_start', wind.yr_s);
@@ -466,7 +466,13 @@ if strcmp(wind.db, 'Interim')
     txt_new = strrep(txt_new, 'var_west', num2str(wind.lon_min));
     txt_new = strrep(txt_new, 'var_east', num2str(wind.lon_max));
     txt_new = strrep(txt_new, 'var_out', strrep([wind.folder, filesep, 'nc', filesep], '\', '/'));
-        
+    
+    if strcmp(wind.db, 'Interim')
+        txt_new = strrep(txt_new, 'ECMWFclass', "ei");
+    else
+        txt_new = strrep(txt_new, 'ECMWFclass', "ea");
+    end
+    
     
     fid = fopen('download_ECMWF.py', 'w');
     fprintf(fid, '%s', txt_new);
