@@ -17,7 +17,7 @@ east        = var_east
 # Output folder, i.e. replace by your project name
 out_path    = 'var_out'
 
-CLASS 		= ECMWFclass
+CLASS 		= "ECMWFclass"
 
 
 ##################################################
