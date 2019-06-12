@@ -281,7 +281,7 @@ w.wind6_dataset = uicontrol(...
     'position', [.1 .2 .8 .3],...
     'ForegroundColor', [.75 .75 .75],...
     'BackgroundColor', [.35 .35 .35],...
-    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA5', 'ECMWF (offline)'});
+    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA5', 'ECMWF ERA-Interim (offline)', 'ECMWF ERA5 (offline)'});
 
 w.wind6_txt = uicontrol(...
     'parent', w.wind6,...
@@ -394,7 +394,7 @@ wind.lat     = get(w.wind2_lat, 'String');
 wind.lon     = get(w.wind2_lon, 'String');
 wind.name    = get(w.wind4_name, 'String');
 
-db           = {'Reanalysis1', 'Reanalysis2', 'Interim', 'ERA5', 'InterimOff'};
+db           = {'Reanalysis1', 'Reanalysis2', 'Interim', 'ERA5', 'InterimOff', 'ERA5Off'};
 wind.db      = db{get(w.wind6_dataset, 'Value')};
 wind.int_ext = str2double(get(w.wind2_ext, 'String'));
 meth         = {'Linear', 'Nearest', 'Pchip', 'Cubic', 'Spline'};
@@ -407,7 +407,7 @@ wind.mt_e    = mts{get(w.wind3_e_month, 'Value')};
 
 
 % Define extent
-if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'InterimOff')
+if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5')|| strcmp(wind.db, 'ERA5Off')
     interv = 0.25;
 else
     interv = 2.5;
@@ -443,7 +443,7 @@ mkdir(fullfile(wind.folder, 'nc'));
 mkdir(fullfile(wind.folder, 'ascii'));
 
 % In case ERA offline, retrieve netcdf files
-if strcmp(wind.db, 'InterimOff')
+if strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off')
     fprintf('Select folder containing the ERA-Interim .nc files\n');
     wind.ncDir = uigetdir( ...
     'Select folder containing the ERA-Interim .nc files');
@@ -469,8 +469,10 @@ if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'ERA5')
     
     if strcmp(wind.db, 'Interim')
         txt_new = strrep(txt_new, 'ECMWFclass', "ei");
+        txt_new = strrep(txt_new, 'ECMWFdataset', "interim");
     else
         txt_new = strrep(txt_new, 'ECMWFclass', "ea");
+        txt_new = strrep(txt_new, 'ECMWFdataset', "era5");
     end
     
     

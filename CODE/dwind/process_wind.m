@@ -128,7 +128,7 @@ if ~isempty(regexp(wind.db, 'Reanalysis', 'ONCE'))
     
     
 % Case ECMWF ERA-Interim Offline    
-elseif strcmp(wind.db, 'InterimOff')
+elseif strcmp(wind.db, 'InterimOff') 
     in_path     = wind.ncDir;
     fl          = dir(fullfile(in_path, '*.nc'));
     stor        = struct;

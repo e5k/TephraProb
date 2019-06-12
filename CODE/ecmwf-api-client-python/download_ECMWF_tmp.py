@@ -18,7 +18,7 @@ east        = var_east
 out_path    = 'var_out'
 
 CLASS 		= "ECMWFclass"
-
+DATASET 	= "ECMWFdataset"
 
 ##################################################
 #os.mkdir(out_path)
@@ -51,7 +51,7 @@ for year in range(year_start, year_end+1):
         print("################################")
         
         server.retrieve({
-            'dataset'   : "interim",
+            'dataset'   : DATASET,
             'date'      : "%s/to/%s"%(bdate,edate),
             'time'      : "00/06/12/18",
             'step'      : "0",
