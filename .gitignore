@@ -13,5 +13,5 @@ prefs.mat
 *.kmz
 *.jpg
 *.png
-*.api_key.mat
+CODE/dependencies/api_key.mat
 tephra2-2012*

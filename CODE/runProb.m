@@ -279,7 +279,8 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     % and duration
                     if data.constrain == 0               
                         if data.ht_sample == 0
-                            mass_tmp(j) = (data.min_mass+((data.max_mass)-(data.min_mass))*rand(1))/nb_sim;
+%                             mass_tmp(j) = (data.min_mass+((data.max_mass)-(data.min_mass))*rand(1))/nb_sim;
+                            mass_tmp(j) = 10.^(log10(data.min_mass)+((log10(data.max_mass))-(log10(data.min_mass)))*rand(1))/nb_sim;
                         else
                             mass_tmp(j) = (exp(log(data.min_mass)+(log(data.max_mass)-log(data.min_mass))*rand(1)))/nb_sim;
                         end

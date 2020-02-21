@@ -89,14 +89,17 @@ for iR = 1:length(runs)
 
     nbRuns = size(folds,1); % Number of runs
     dataT2 = zeros(size(grd_tmp,1),nbRuns); % Main storage
+    runNb  = zeros(nbRuns,1); % Index containing the run number
     
     wb      = waitbar(0, sprintf('Summing files for season: %s - %.0f/%.0f\n', runs{iR}, iR, length(runs)));
     for j = 1:nbRuns
         if strcmp(folds(j).name, '.') || strcmp(folds(j).name, '..') || strcmp(folds(j).name, '.DS_Store')
         else
             files = dir(fullfile(project.run_pth, 'OUT', runs{iR}, folds(j).name, '*.out*'));
+            runNb(j) = str2double(folds(j).name);
             
             for k = 1:length(files)
+
                 tmpF        = dlmread(fullfile(project.run_pth, 'OUT',runs{iR}, folds(j).name, files(k).name));
                 % Test if output file is of same size
                 if size(tmpF,1) == size(dataT2,1)
@@ -125,7 +128,7 @@ for iR = 1:length(runs)
         dataT2 = permute(dataT2, [2,1,3]); % Permute
     end
     fprintf('- Saving project file\n');
-    save([project.run_pth, 'DATA', filesep, 'dataT2_', runs{iR}, '.mat'], 'dataT2', '-v7.3')
+    save([project.run_pth, 'DATA', filesep, 'dataT2_', runs{iR}, '.mat'], 'dataT2', 'runNb', '-v7.3')
     close(wb)  
 end
 
