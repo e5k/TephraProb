@@ -61,7 +61,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         mkdir(out_pth);
     else
         run_nb      = 1;
-        out_pth     = fullfile(run_path, num2str(run_nb));
+        out_pth     = fullfi    le(run_path, num2str(run_nb));
         mkdir(out_pth);
     end
     data.run_nb     = run_nb;   % Save run number to main struct
@@ -92,12 +92,12 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         % Gets the wind profiles for each subseason
         if month(month_rainy) > month(month_dry)
             tmp_dry             = month(month_dry):month(month_rainy)-1;
-            range_month_dry     = datenum(tmp(tmp(:,2) >= tmp_dry(1) & tmp(:,2) < tmp_dry(end),:));
-            range_month_rainy   = datenum(tmp(tmp(:,2) < tmp_dry(1) | tmp(:,2) >= tmp_dry(end),:));
+            range_month_dry     = datenum(tmp(tmp(:,2) >= tmp_dry(1) & tmp(:,2) <= tmp_dry(end),:));
+            range_month_rainy   = datenum(tmp(tmp(:,2) < tmp_dry(1) | tmp(:,2) > tmp_dry(end),:));
         else
             tmp_rainy           = month(month_rainy):month(month_dry)-1;
-            range_month_rainy   = datenum(tmp(tmp(:,2) >= tmp_rainy(1) & tmp(:,2) < tmp_rainy(end),:));
-            range_month_dry     = datenum(tmp(tmp(:,2) < tmp_rainy(1) | tmp(:,2) >= tmp_rainy(end),:));
+            range_month_rainy   = datenum(tmp(tmp(:,2) >= tmp_rainy(1) & tmp(:,2) <= tmp_rainy(end),:));
+            range_month_dry     = datenum(tmp(tmp(:,2) < tmp_rainy(1) | tmp(:,2) > tmp_rainy(end),:));
         end
         wind_vec_dry            = ((range_month_dry-datenum(data.wind_start))*data.wind_per_day)+1;     % Vector containing the indices of the wind profiles for the dry season
         wind_vec_rainy          = ((range_month_rainy-datenum(data.wind_start))*data.wind_per_day)+1;   % Vector containing the indices of the wind profiles for the rainy season
@@ -278,11 +278,10 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     % Here, either sample the mass or calculate it from MER
                     % and duration
                     if data.constrain == 0               
-                        if data.ht_sample == 0
-%                             mass_tmp(j) = (data.min_mass+((data.max_mass)-(data.min_mass))*rand(1))/nb_sim;
-                            mass_tmp(j) = 10.^(log10(data.min_mass)+((log10(data.max_mass))-(log10(data.min_mass)))*rand(1))/nb_sim;
+                        if data.mass_sample == 0
+                            mass_tmp(j) = (data.min_mass+((data.max_mass)-(data.min_mass))*rand(1))/nb_sim;
                         else
-                            mass_tmp(j) = (exp(log(data.min_mass)+(log(data.max_mass)-log(data.min_mass))*rand(1)))/nb_sim;
+                            mass_tmp(j) = 10.^(log10(data.min_mass)+((log10(data.max_mass))-(log10(data.min_mass)))*rand(1))/nb_sim;
                         end
                     else
                         mass_tmp(j) = mer_tmp(j)*dur_tmp(j);                             % Calculate the mass, where parameters are assumed constant for the time specified in dur_tmp

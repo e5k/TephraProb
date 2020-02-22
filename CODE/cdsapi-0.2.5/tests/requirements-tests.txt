@@ -1,0 +1,9 @@
+#
+pytest-cov
+pytest-env
+pytest-flakes
+pytest-mccabe
+pytest-pep8
+pytest-runner
+pytest
+requests

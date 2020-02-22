@@ -39,7 +39,8 @@ function tephraProb
 %vers = '1.6.1';     % Oct 2018 Added Google Earth export
 %vers = '1.6.2';     % Oct 2018 Checked windows compatibility
 %vers = '1.6.3';     % Oct 2018 Fixed problems with ERA-Interim offline
-vers = '1.6.4';     % Oct 2018 Similar wind profiles
+%vers = '1.6.4';     % Oct 2018 Similar wind profiles
+vers = '1.7.1';     % Feb 2020 ERA-5
 
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
@@ -95,8 +96,10 @@ t.fig = figure(...
             t.m12 = uimenu(t.menu1, 'Label', 'Points', 'Accelerator', 'P', 'callback', 'conf_points');
             
             t.m12 = uimenu(t.menu1, 'Label', 'Wind', 'Separator', 'on');
-                t.m111 = uimenu(t.m12, 'Label', 'Set ECMWF API key', 'callback', 'writeECMWFAPIKey');
-                t.m112 = uimenu(t.m12, 'Label', 'Install ECMWF libraries', 'callback', 'installECMWFAPI');
+                t.m111 = uimenu(t.m12, 'Label', 'Set ERA-Interim API key', 'callback', {@writeAPI_,0});
+                t.m112 = uimenu(t.m12, 'Label', 'Install ERA-Interim libraries', 'callback', {@installAPI_,0});
+                t.m111 = uimenu(t.m12, 'Label', 'Set ERA-5 API key', 'separator', 'on', 'callback', {@writeAPI_,1});
+                t.m112 = uimenu(t.m12, 'Label', 'Install ERA-5 libraries', 'callback', {@installAPI_,1});
                 t.m113 = uimenu(t.m12, 'Label', 'Download wind data', 'separator', 'on', 'callback', 'dwind');
                 t.m115 = uimenu(t.m12, 'Label', 'Process wind data', 'callback', 'process_wind');
                 t.m116 = uimenu(t.m12, 'Label', 'Analyze wind data', 'callback', 'analyze_wind');
@@ -216,6 +219,11 @@ function plotMap_(~,~,type)
 function probability_maker_(~,~,type)
     probability_maker(type);
     
+function writeAPI_(~,~,type)
+    writeAPI(type);    
+
+function installAPI_(~,~,type)
+    installAPI(type);  
     
 function load_project(~,~)
 global t

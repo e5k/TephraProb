@@ -62,6 +62,10 @@ w.fig = figure(...
     'Name', 'TephraProb: dWind',...
     'NumberTitle', 'off');
 
+% Menu
+w.menu = uimenu(w.fig, 'Label', 'File');
+    w.m11 = uimenu(w.menu, 'Label', 'Load', 'Accelerator', 'O');
+
 w.wind1 = uipanel(...
     'units', 'normalized',...
     'position', [.025 .025 .95 .95],...
@@ -281,9 +285,9 @@ w.wind6_dataset = uicontrol(...
     'position', [.1 .2 .8 .3],...
     'ForegroundColor', [.75 .75 .75],...
     'BackgroundColor', [.35 .35 .35],...
-    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA-Interim (offline)'});
+    'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA5', 'ECMWF ERA-Interim (offline)', 'ECMWF ERA5 (offline)'});
 
-%     'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA5', 'ECMWF ERA-Interim (offline)', 'ECMWF ERA5 (offline)'});
+%     'String', {'NOAA Reanalysis 1', 'NOAA Reanalysis 2', 'ECMWF ERA-Interim', 'ECMWF ERA-5', 'ECMWF ERA-Interim (offline)', 'ECMWF ERA-5 (offline)'});
 
 w.wind6_txt = uicontrol(...
     'parent', w.wind6,...
@@ -345,10 +349,30 @@ w.wind5_but_download = uicontrol(...
 
 set(w.wind5_but_download, 'callback', {@but_wind5_download, w})
 set(w.wind6_dataset, 'callback', {@but_wind6_dataset,w});
+set(w.m11, 'callback', {@load_wind, w})
 
 % Adapt display accross plateforms
 set_display
-    
+
+function load_wind(~,~,w)
+% Select run file
+[flname, flpath] = uigetfile('WIND/*.mat', 'Select a WIND file to open');
+tmp = load(fullfile(flpath, flname));
+wind = tmp.wind;
+
+db = {'Reanalysis1', 'Reanalysis2', 'Interim', 'ERA5', 'InterimOff', 'ERA5Off'};
+
+w.wind2_lat.String      = wind.lat;
+w.wind2_lon.String      = wind.lon;
+w.wind2_ext.String      = num2str(wind.int_ext);
+w.wind2_int.Value       = find(strcmp(w.wind2_int.String,wind.meth)==1);
+w.wind6_dataset.Value   = find(strcmp(db,wind.db)==1);
+w.wind4_name.String     = wind.name;
+w.wind3_s_year.Value    = find(strcmp(w.wind3_s_year.String,wind.yr_s)==1);
+w.wind3_e_year.Value    = find(strcmp(w.wind3_e_year.String,wind.yr_e)==1);
+w.wind3_s_month.Value   = find(strcmp(w.wind3_s_month.String,wind.mt_s)==1);
+w.wind3_e_month.Value   = find(strcmp(w.wind3_e_month.String,wind.mt_e)==1);
+
 function but_wind6_dataset(hObject,~,w)
 set(findobj('tag', 'year_start'), 'Value', 1);
 set(findobj('tag', 'year_end'), 'Value', 1);
@@ -359,7 +383,7 @@ else          % Reanalysis 2 or ERA-Interim
     yrs = arrayfun(@num2str, 1979:yr, 'UniformOutput', false);
 end
 
-if get(hObject, 'Value') == 4       % If processing offline ERA-Interim
+if get(hObject, 'Value') >= 5       % If processing offline ERA-Interim
     set(w.wind5_but_download, 'String', 'Process');
     set(w.wind3_s_year, 'Enable', 'off');
     set(w.wind3_e_year, 'Enable', 'off');
@@ -458,8 +482,16 @@ save(fullfile(wind.folder, 'wind.mat'),'wind')
 %% ERA-INTERIM
 if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'ERA5')
 
-    txt     = fileread('download_ECMWF_tmp.py');
-    txt_new = strrep(txt, 'var_year_start', wind.yr_s);
+    if strcmp(wind.db, 'Interim')        
+        txt     = fileread('download_ECMWF_tmp.py'); 
+        txt_new = strrep(txt, 'ECMWFclass', "ei");
+        txt_new = strrep(txt_new, 'ECMWFdataset', "interim");
+    elseif strcmp(wind.db, 'ERA5')
+        txt     = fileread('download_ERA5_tmp.py'); 
+        txt_new = txt;
+    end
+    
+    txt_new = strrep(txt_new, 'var_year_start', wind.yr_s);
     txt_new = strrep(txt_new, 'var_year_end', wind.yr_e);
     txt_new = strrep(txt_new, 'var_month_start', wind.mt_s);
     txt_new = strrep(txt_new, 'var_month_end', wind.mt_e);
@@ -468,15 +500,7 @@ if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'ERA5')
     txt_new = strrep(txt_new, 'var_west', num2str(wind.lon_min));
     txt_new = strrep(txt_new, 'var_east', num2str(wind.lon_max));
     txt_new = strrep(txt_new, 'var_out', strrep([wind.folder, filesep, 'nc', filesep], '\', '/'));
-    
-    if strcmp(wind.db, 'Interim')
-        txt_new = strrep(txt_new, 'ECMWFclass', "ei");
-        txt_new = strrep(txt_new, 'ECMWFdataset', "interim");
-    else
-        txt_new = strrep(txt_new, 'ECMWFclass', "ea");
-        txt_new = strrep(txt_new, 'ECMWFdataset', "era5");
-    end
-    
+
     
     fid = fopen('download_ECMWF.py', 'w');
     fprintf(fid, '%s', txt_new);

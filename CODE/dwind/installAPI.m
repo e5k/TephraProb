@@ -10,8 +10,9 @@
                     \/_/                                                   
 ___________________________________________________________________________
 
-Name:       writeECMWFAPIKey.m
-Purpose:    Writes the .ecmwfapirc file to user folder
+Name:       installECMWFAPI.m
+Purpose:    Uses the system function to install the ECMWF Python Api
+            libraries
 Author:     Sebastien Biass
 Created:    April 2015
 Updates:    April 2015
@@ -35,48 +36,27 @@ TephraProb is free software: you can redistribute it and/or modify
 %}
 
 
-function writeECMWFAPIKey
+function installAPI(type)
+% Type: 0 = ERA-Interim
+%       1 = ERA-5
+
 % Check that you are located in the correct folder!
 if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
     return
 end
 
-if ispc; 
-    userdir= getenv('USERPROFILE'); 
+% Check Python install
+
+if system('python --version') ~= 0
+    errordlg('No version of python found on your system', ' ')
 else
-    userdir= getenv('HOME');
-end
-
-if exist([userdir, filesep, '.ecmwfapirc'], 'file')
-    choice = questdlg('It seems that an API key already exists. Overwrite?', ...
-	'API key', ...
-    'Yes','No','No');
-    % Handle response
-    switch choice
-        case 'Yes'
-            choice = 1;
-        case 'No'
-            choice = 0;
+    if type == 0
+        cd('CODE/ecmwf-api-client-python/');
+    elseif type == 1
+        cd('CODE/cdsapi-0.2.5/');
     end
-else
-    choice = 1;
+    system('python setup.py install --user');
+    cd('../../');
 end
-
-if choice == 1
-    apistr = inputdlg('Enter the content of the API key:', 'API key', [5,100]);
-    apistr = apistr{1};
-
-    fid = fopen([userdir, filesep, '.ecmwfapirc'], 'w');
-    for i = 1:size(apistr,1)
-        for j = 1:size(apistr,2)
-
-            if j == size(apistr,2)
-                fprintf(fid, '%s\n', apistr(i,j));
-            else
-                fprintf(fid, '%s', apistr(i,j));
-            end
-        end
-    end
-    fclose(fid);
-end
+    

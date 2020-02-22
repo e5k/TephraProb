@@ -7,5 +7,3 @@ ecmwf_api_client.egg-info/not-zip-safe
 ecmwf_api_client.egg-info/top_level.txt
 ecmwfapi/__init__.py
 ecmwfapi/api.py
-ecmwfapi_old/__init__.py
-ecmwfapi_old/api.py
