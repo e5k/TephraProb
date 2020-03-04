@@ -61,7 +61,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         mkdir(out_pth);
     else
         run_nb      = 1;
-        out_pth     = fullfi    le(run_path, num2str(run_nb));
+        out_pth     = fullfile(run_path, num2str(run_nb));
         mkdir(out_pth);
     end
     data.run_nb     = run_nb;   % Save run number to main struct
