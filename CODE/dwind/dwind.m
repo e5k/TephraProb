@@ -483,11 +483,11 @@ save(fullfile(wind.folder, 'wind.mat'),'wind')
 if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'ERA5')
 
     if strcmp(wind.db, 'Interim')        
-        txt     = fileread('download_ECMWF_tmp.py'); 
-        txt_new = strrep(txt, 'ECMWFclass', "ei");
-        txt_new = strrep(txt_new, 'ECMWFdataset', "interim");
+        txt     = fileread('download_ECMWF_tmp.py');
+        txt_new = strrep(txt, 'ECMWFclass', 'ei');
+        txt_new = strrep(txt_new, 'ECMWFdataset', 'interim');
     elseif strcmp(wind.db, 'ERA5')
-        txt     = fileread('download_ERA5_tmp.py'); 
+        txt     = fileread('download_ERA5_tmp.py');
         txt_new = txt;
     end
     
