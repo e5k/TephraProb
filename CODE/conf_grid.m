@@ -880,6 +880,7 @@ plot_google_map('maptype', 'terrain', 'MapScale', 1);
 xlabel('Longitude');
 ylabel('Latitude');
 axis equal
+set(gca, 'Layer', 'top');
 
 function write_matrix(tmp, lat, lon, utm, utmx, utmy, dat)
 % Saving data

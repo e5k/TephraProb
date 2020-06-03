@@ -17,19 +17,6 @@ east        = var_east
 # Output folder, i.e. replace by your project name
 out_path    = 'var_out'
 
-# # Debug
-# year_start  = 2018
-# year_end    = 2018
-# month_start = 2
-# month_end   = 2
-# # Area
-# north       = 47
-# south       = 46
-# west        = 6
-# east        = 7
-# # Output folder, i.e. replace by your project name
-# out_path    = ''
-
 
 count  = 1
 for year in range(year_start, year_end+1):

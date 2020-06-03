@@ -222,6 +222,7 @@ for i = 1:size(points,1)
 end
 
 plot_google_map('maptype','terrain', 'MapScale', 1);
+set(gca, 'Layer', 'top');
 
 % Load button
 function cdp = but_load(~, ~, cdp)

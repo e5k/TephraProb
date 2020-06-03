@@ -39,7 +39,57 @@ TephraProb is free software: you can redistribute it and/or modify
 %}
 
 
-function dwind
+function dwind(varargin)
+% function DWIND(varargin)
+%   Opens the GUI for downloading wind
+%   
+% DWIND(lat, lon, startMonth, endMonth, startYear, endYear, name, dataset)
+%   Download wind from the command line
+%       lat, lon      : Target coordinates (decimal degrees, WGS84)
+%       start/endMonth: Start and end months (1-12)
+%       start/endYear : Start and end years (e.g. 2019)
+%       name          : Name of output file (string)
+%       dataset       : Reanalysis dataset to retrieve, accepts 'Reanalysis1', 'Reanalysis2', 'Interim', 'ERA5'
+%
+% Optional arguments:
+%       'intMeth'     : Interpolation method, accepts 'Linear' (default), 'Nearest', 'Pchip', 'Cubic', 'Spline'
+%       'intExt'      : Number of cells (±x, ±y) around vent used for interpolation (default: 2)
+%       'outDir'      : Output folder (default = windName)
+
+if nargin==0
+    dwindGUI;
+else
+    % Required values
+    wind.lat    = num2str(varargin{1});
+    wind.lon    = num2str(varargin{2});
+    wind.mt_s   = num2str(varargin{3});
+    wind.mt_e   = num2str(varargin{4});
+    wind.yr_s   = num2str(varargin{5});
+    wind.yr_e   = num2str(varargin{6});
+    wind.name   = varargin{7};
+    wind.db     = varargin{8};
+    
+    % Default values
+    wind.meth   = 'linear';
+    wind.int_ext= 2;
+    wind.folder = wind.name;
+    
+    % Go through varargin
+    % Interpolation method
+    if ~isempty(findCell(varargin, 'intMeth'))                               
+        wind.meth = varargin{findCell(varargin, 'intMeth')+1};  
+    end
+    if ~isempty(findCell(varargin, 'intExt'))                               
+        wind.int_ext = varargin{findCell(varargin, 'intExt')+1};  
+    end
+    if ~isempty(findCell(varargin, 'outDir'))                               
+        wind.folder = varargin{findCell(varargin, 'outDir')+1};  
+    end
+    
+    download(wind);
+end
+
+function dwindGUI
 % Check that you are located in the correct folder!
 if ~exist(fullfile(pwd, 'tephraProb.m'), 'file')
     errordlg(sprintf('You are located in the folder:\n%s\nIn Matlab, please navigate to the root of the TephraProb\nfolder, i.e. where tephraProb.m is located. and try again.', pwd), ' ')
@@ -430,8 +480,11 @@ wind.yr_s    = yrs{get(w.wind3_s_year, 'Value')};
 wind.yr_e    = yrs{get(w.wind3_e_year, 'Value')};
 wind.mt_s    = mts{get(w.wind3_s_month, 'Value')};
 wind.mt_e    = mts{get(w.wind3_e_month, 'Value')};
+wind.folder  = fullfile('WIND', wind.name);
 
+download(wind);
 
+function download(wind)
 % Define extent
 if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5')|| strcmp(wind.db, 'ERA5Off')
     interv = 0.25;
@@ -450,7 +503,7 @@ wind.lat_max = lat_vec(nnz(lat_vec<str2double(wind.lat)) + wind.int_ext);
 wind.lon_min = lon_vec(nnz(lon_vec<str2double(wind.lon)) - wind.int_ext + 1);
 wind.lon_max = lon_vec(nnz(lon_vec<str2double(wind.lon)) + wind.int_ext);
 
-wind.folder  = fullfile('WIND', wind.name);
+
 
 % Create folder
 if exist(wind.folder, 'dir') == 7
@@ -565,3 +618,9 @@ else
 end
 
 process_wind(wind)
+
+% Finds the cell index of a string in a cell array
+function idx = findCell(cell2find, str2find)
+cell2find   = cellfun(@num2str, cell2find, 'UniformOutput', false);
+%[~,idx]     = find(not(cellfun('isempty', strfind(cell2find, str2find)))==1);
+idx     = find(not(cellfun('isempty', strfind(cell2find, str2find))),1);
