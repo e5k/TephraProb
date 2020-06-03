@@ -512,7 +512,11 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         fprintf('\t A total of %d sampling attempts were performed to achieve %d possible sets of eruption source parameters (season: %s) \n',...
             count_tot, count_run, seas_str{seas})
     end
-
+    
+    % Store the sampling attempts
+    data.attempts.(seas_str{seas}) = count_tot;
+    save(fullfile(out_pth, [data.run_name, '_', num2str(run_nb), '.mat']), 'data');
+    
     % Close access to file
     fclose(fid_T2);
     fprintf('\nSampling of Eruption Source Parameters finished!\n');
