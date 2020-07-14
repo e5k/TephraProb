@@ -120,7 +120,12 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
 
     % General storage file fed to the run_T2 function
     fid_T2 = fopen(fullfile(out_pth, 'T2_stor.txt'), 'wt');
-        
+      
+    
+    % 2020/07/14 - Moved out of loop (thanks Jan-Christopher Fischer)
+    mkdir(fullfile(out_pth, 'FIG'));
+    mkdir(fullfile(out_pth, 'KML'));
+
     for seas = 1:length(seas_str)
         fprintf('Run for season %s\n', seas_str{seas});
         fprintf('\t Creating storage matrices and output folders\n');
@@ -144,8 +149,10 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         mkdir(fullfile(out_pth, 'CONF', seas_str{seas}));
         mkdir(fullfile(out_pth, 'GS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'LOG', seas_str{seas}));
-        mkdir(fullfile(out_pth, 'FIG'));
-        mkdir(fullfile(out_pth, 'KML'));
+%         % Should probably move these out of the loop
+%         mkdir(fullfile(out_pth, 'FIG'));
+%         mkdir(fullfile(out_pth, 'KML'));
+%         % --------
         mkdir(fullfile(out_pth, 'FIG/ESP', seas_str{seas}));
         mkdir(fullfile(out_pth, 'FIG/MAPS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'SUM', seas_str{seas}));
