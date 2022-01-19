@@ -53,7 +53,7 @@ function dwind(varargin)
 %
 % Optional arguments:
 %       'intMeth'     : Interpolation method, accepts 'Linear' (default), 'Nearest', 'Pchip', 'Cubic', 'Spline'
-%       'intExt'      : Number of cells (±x, ±y) around vent used for interpolation (default: 2)
+%       'intExt'      : Number of cells (ï¿½x, ï¿½y) around vent used for interpolation (default: 2)
 %       'outDir'      : Output folder (default = windName)
 
 if nargin==0
@@ -526,6 +526,7 @@ if strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off')
     fprintf('Select folder containing the ERA-Interim .nc files\n');
     wind.ncDir = uigetdir( ...
     'Select folder containing the ERA-Interim .nc files');
+
 end
 
 save(fullfile(wind.folder, 'wind.mat'),'wind')
@@ -564,7 +565,7 @@ if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'ERA5')
     delete('download_ECMWF.py');
     
 % Offline mode
-elseif strcmp(wind.db, 'InterimOff')
+elseif strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off')
     
 %% NOAA
 else

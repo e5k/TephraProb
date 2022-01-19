@@ -128,8 +128,8 @@ if ~isempty(regexp(wind.db, 'Reanalysis', 'ONCE'))
     
     
 % Case ECMWF ERA-Interim Offline    
-elseif strcmp(wind.db, 'InterimOff') 
-    in_path     = wind.ncDir;
+elseif strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off') 
+    in_path = wind.ncDir;
     fl          = dir(fullfile(in_path, '*.nc'));
     stor        = struct;
     
@@ -141,17 +141,22 @@ elseif strcmp(wind.db, 'InterimOff')
         
         % Find vent coordinates
        if i==1
-            latI(1) = find(stor(i).LAT == wind.lat_min);
-            latI(2) = find(stor(i).LAT == wind.lat_max);
-            latI = fliplr(latI);
-            lonI(1) = find(stor(i).LON == wind.lon_min);
-            lonI(2) = find(stor(i).LON == wind.lon_max);           
+           if length(stor(i).LAT) == 1 || length(stor(i).LON) == 1
+               latI = stor(i).LAT;
+               lonI = stor(i).LON;
+           else
+               latI(1) = find(stor(i).LAT == wind.lat_min);
+               latI(2) = find(stor(i).LAT == wind.lat_max);
+               latI = fliplr(latI);
+               lonI(1) = find(stor(i).LON == wind.lon_min);
+               lonI(2) = find(stor(i).LON == wind.lon_max);    
+           end
         end
     
         stor(i).HGT       = ncread(fullfile(in_path, fl(i).name), 'z')/9.80665;
         stor(i).UWND      = ncread(fullfile(in_path, fl(i).name), 'u'); 
         stor(i).VWND      = ncread(fullfile(in_path, fl(i).name), 'v'); 
-        stor(i).time      = double(ncread(fullfile(in_path, fl(i).name), 'time'))/24 + datenum(1900,1,1,0,0,0);         
+        stor(i).time      = double(ncread(fullfile(in_path, fl(i).name), 'time'))/24 + datenum(1900,1,1,0,0,0);  
     end
     
     % Do some tests to see if the timestamp is correct
@@ -187,11 +192,18 @@ elseif strcmp(wind.db, 'InterimOff')
     fprintf('\tInterpolating and writing ascii files, please wait...\n')
     for iT = 1:size(UWND,4)     % Loop through time
         for iL = 1:size(UWND,3)   % Loop through levels
+            % No interpolation
+            if length(stor(i).LAT) == 1 || length(stor(i).LON) == 1
+                u = UWND(1,1,iL,iT);
+                v = VWND(1,1,iL,iT);
+                z = HGT(1,1,iL,iT);
+            else
             % Interpolate to vent coordinates
-            u   = intVent(UWND, stor(i).LON, stor(i).LAT, latI, lonI, wind, iL, iT);
-            v	= intVent(VWND, stor(i).LON, stor(i).LAT, latI, lonI, wind, iL, iT);
-            z   = intVent(HGT, stor(i).LON, stor(i).LAT,  latI, lonI, wind, iL, iT);
-
+                u   = intVent(UWND, stor(i).LON, stor(i).LAT, latI, lonI, wind, iL, iT);
+                v	= intVent(VWND, stor(i).LON, stor(i).LAT, latI, lonI, wind, iL, iT);
+                z   = intVent(HGT, stor(i).LON, stor(i).LAT,  latI, lonI, wind, iL, iT);
+            end
+            
             speed   = sqrt(u.^2+v.^2);                                  % Wind speed
             angle   = atan2d(u,v);                                      % Wind direction
             angle(angle<0) = 360+angle(angle<0);                        % Get rid of negative value
@@ -226,6 +238,8 @@ else
         fprintf('\tInterpolating and writing ascii files, please wait...\n')
         for iT = 1:size(UWND,4)     % Loop through time
             for iL = 1:size(UWND,3)   % Loop through levels
+                
+               
                 % Interpolate to vent coordinates
                 u   = intVent(UWND, LON, LAT, [1, length(LAT)], [1, length(LON)], wind, iL, iT);
                 v	= intVent(VWND, LON, LAT, [1, length(LAT)], [1, length(LON)], wind, iL, iT);
