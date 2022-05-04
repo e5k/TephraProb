@@ -566,7 +566,7 @@ if strcmp(wind.db, 'Interim') || strcmp(wind.db, 'ERA5')
     
 % Offline mode
 elseif strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off')
-    
+    copyfile(fullfile(wind.ncDir, '*.nc'), fullfile(wind.folder, 'nc'))
 %% NOAA
 else
     % Work on input coordinates

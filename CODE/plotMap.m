@@ -198,6 +198,9 @@ for i = 1:length(s)
     % Plot basemap
     if prefs.maps.basemap == 2
         plot_google_map('maptype', 'terrain', 'MapScale', 1);
+    elseif prefs.maps.basemap == 3
+        a = plot_openstreetmap('scale', prefs.maps.OSM_scale);
+        uistack(a, 'bottom')
     end
     
     % Plot vent

@@ -876,7 +876,9 @@ h1 = fill([min(min(lon)); max(max(lon)); max(min(lon)); min(max(lon))], [max(max
 set(h1, 'FaceAlpha', .3);
 hold on;
 %plot(lon, lat, 'xr')
-plot_google_map('maptype', 'terrain', 'MapScale', 1);
+% plot_google_map('maptype', 'terrain', 'MapScale', 1);
+plot_openstreetmap('scale', 2);
+uistack(h1,'top')
 xlabel('Longitude');
 ylabel('Latitude');
 axis equal

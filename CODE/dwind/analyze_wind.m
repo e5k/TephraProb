@@ -53,6 +53,11 @@ end
     
 load([FilePath, filesep, FileName]);
 
+% Make sure time is as datevec
+if size(stor_time, 2) == 1
+    stor_time = datevec(stor_time);
+end
+
 scr = get(0,'ScreenSize');
 w   = 650;
 h   = 600;
@@ -718,6 +723,11 @@ function dout = average_sep(typ)
 global w2 stor_data stor_time trgt
 % Typ 1 -> Years
 % Typ 2 -> Months
+
+% Make sure time is as datevec
+if size(stor_time, 2) == 1
+    stor_time = datevec(stor_time)
+end
 
 sel_val = get(w2.subtime_table, 'Value');
 sel_str = get(w2.subtime_table, 'String');

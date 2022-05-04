@@ -156,7 +156,7 @@ elseif strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off')
         stor(i).HGT       = ncread(fullfile(in_path, fl(i).name), 'z')/9.80665;
         stor(i).UWND      = ncread(fullfile(in_path, fl(i).name), 'u'); 
         stor(i).VWND      = ncread(fullfile(in_path, fl(i).name), 'v'); 
-        stor(i).time      = double(ncread(fullfile(in_path, fl(i).name), 'time'))/24 + datenum(1900,1,1,0,0,0);  
+        stor(i).time      = double(ncread(fullfile(in_path, fl(i).name), 'time'))/24 + datenum(1900,1,1,0,0,0); 
     end
     
     % Do some tests to see if the timestamp is correct

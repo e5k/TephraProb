@@ -29,6 +29,17 @@ Documentation can be found:
 
 > Biass, S., Bonadonna, C., Connor, L., Connor, C., 2016. TephraProb. [doi:10.5281/zenodo.3590721](https://doi.org/10.5281/zenodo.3590721)
 
+## Acknowledgments
+
+- **Zohar Bar-Yehuda** for the [plot_google_map](https://github.com/zoharby/plot_google_map) function.
+- **Alex Voronov** for the [plot_openstreetmap](https://github.com/alexvoronov/plot_openstreetmap) function.
+- **Wim Degruyter** for the [get_mer](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012GL052566?casa_token=OBXKwSpV8vcAAAAA%3A4HJhAV0JgGCN2sLJehl8FMWA6PU8oxxLWwEQNBJbA31-M-iH6iz5ayjHwT-GrnWHEjIkOOUTFYYOKiWM) function.
+- **Francois Beauducel** for the [ll2utm](https://ch.mathworks.com/matlabcentral/fileexchange/45699-ll2utm-and-utm2ll?s_tid=ta_fx_results) function.
+- **M MA** for the [wind_rose](https://ch.mathworks.com/matlabcentral/fileexchange/17748-wind_rose?s_tid=ta_fx_results) function.
+- **Scott Lee Davis** for the [Google Earth](https://ch.mathworks.com/matlabcentral/fileexchange/12954-google-earth-toolbox?s_tid=ta_fx_results) toolbox.
+
+Apologies if I forgot anyone!
+
 ## License
 TephraProb is released under a GPL3 license, which means that everybody should 
 feel free to contribute, comment, suggest and modify the code for as long as any 

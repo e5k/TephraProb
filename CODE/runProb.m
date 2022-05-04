@@ -149,17 +149,10 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
         mkdir(fullfile(out_pth, 'CONF', seas_str{seas}));
         mkdir(fullfile(out_pth, 'GS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'LOG', seas_str{seas}));
-%         % Should probably move these out of the loop
-%         mkdir(fullfile(out_pth, 'FIG'));
-%         mkdir(fullfile(out_pth, 'KML'));
-%         % --------
+
         mkdir(fullfile(out_pth, 'FIG/ESP', seas_str{seas}));
         mkdir(fullfile(out_pth, 'FIG/MAPS', seas_str{seas}));
         mkdir(fullfile(out_pth, 'SUM', seas_str{seas}));
-        %mkdir(fullfile(out_pth, 'CURVES', seas_str{seas}));
-%         if ~exist(fullfile(out_pth, 'PROB'), 'dir')
-%             mkdir(fullfile(out_pth, 'PROB'));
-%         end
 
         % Get the wind vector for the season considered
         if strcmp(seas_str{seas}, 'all')
@@ -261,7 +254,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                 % MER and mass calculation
                 for j = 1:nb_sim      
                     wind_prof   = load(fullfile(data.wind_pth, [num2str(wind_vec(j), '%05i'), '.gen']));                                   % Loads wind profile
-                    
+
                     % Get the closest value to tropopause (assumed 15 km asl over Iceland)
                     level       = find(abs(wind_prof(:,1)-data.trop_height) == min(abs(wind_prof(:,1)-data.trop_height)));
                     if length(level) > 1
@@ -280,7 +273,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     
                     speed_tmp(j)= wind_prof(level,2);                                   % Maximum wind speed at the tropopause
                     mer_tmp(j)  = get_mer((ht_tmp(j) - data.vent_ht), speed_tmp(j));    % Calculate MER from the method of Degruyter and Bonadonna (2012)
-                    dir_tmp(j)  = median(wind_prof(level3:level2,3));                        % Median wind direction below the plume
+                    dir_tmp(j)  = median(wind_prof(level3:level2,3));                   % Median wind direction below the plume
                     
                     % Here, either sample the mass or calculate it from MER
                     % and duration
@@ -558,6 +551,17 @@ end
 function load_data(~, ~, ~)
 prepare_data(1);
 
+function choose_wind(~,~,f)
+pth = uigetdir('WIND', 'Select the ascii/ wind folder containing the wind files');
+id = strfind(pth, 'WIND/');
+f.tab.Data{4,2} = pth(id:end);
+
+function choose_grid(~,~,f)
+[fl, pth] = uigetfile('GRID/*.utm', 'Select the .utm grid file');
+id = strfind(pth, 'GRID/');
+f.tab.Data{3,2} = [pth(id:end),fl];
+
+
 % Get run number
 function run_nb = get_run_nb(run_path)
 l       = dir(run_path);
@@ -593,7 +597,9 @@ t.fig = figure(...
         % Menu
         t.menu = uimenu(t.fig, 'Label', 'File');
             t.m11 = uimenu(t.menu, 'Label', 'Load', 'Accelerator', 'O');
-        
+            t.m12 = uimenu(t.menu, 'Label', 'Choose wind file');
+            t.m13 = uimenu(t.menu, 'Label', 'Choose grid file');
+            
         % Main panel
         t.main = uipanel(...
             'parent', t.fig,...
@@ -636,6 +642,8 @@ t.fig = figure(...
 % Callback for ok button
 set(t.ok, 'callback', {@test_param, t})
 set(t.m11, 'callback', {@load_data, t})
+set(t.m12, 'callback', {@choose_wind, t})
+set(t.m13, 'callback', {@choose_grid, t})
 uiwait(t.fig);
 
 % Test input parameters

@@ -40,7 +40,8 @@ function tephraProb
 %vers = '1.6.2';     % Oct 2018 Checked windows compatibility
 %vers = '1.6.3';     % Oct 2018 Fixed problems with ERA-Interim offline
 %vers = '1.6.4';     % Oct 2018 Similar wind profiles
-vers = '1.7.1';     % Feb 2020 ERA-5
+%vers = '1.7.1';     % Feb 2020 ERA-5
+vers = '1.7.2';      % May 2022 OpenStreetMap plotting
 
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')
