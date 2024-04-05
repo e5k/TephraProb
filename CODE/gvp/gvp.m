@@ -301,14 +301,14 @@ gvp.plot = uicontrol(...
         'Callback', @PREP_DATA);
 
 function ws(~,~)
-web http://www.volcano.si.edu/search_volcano.cfm -browser
+web http://volcano.si.edu/search_volcano.cfm -browser
 
 function download_data(~, ~)
 global gvp stor htmldata
 
 volcano_code = get(gvp.top_code, 'String');
 
-websave('tmp.html', ['http://www.volcano.si.edu/volcano.cfm?vn=', volcano_code]);
+websave('tmp.html', ['http://volcano.si.edu/volcano.cfm?vn=', volcano_code]);
 
 % Use htmlTableToCell function to retrieve table from html
 tables.idTableBy.plaintextPreceedingTable = '<table class="DivTable" title="Eruption history table for this volcano">';

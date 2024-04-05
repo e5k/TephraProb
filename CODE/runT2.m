@@ -68,64 +68,82 @@ mod_pth = [pwd, filesep, 'MODEL', filesep, 'forward_src', filesep];
 % Noticed a problem with the definition of the cygwin path when not
 % installed in c:\cygwin
 if ispc
-    path1 = getenv('PATH');
+    % path1 = getenv('PATH');
     
-    % Retrieve architecture
-    if strcmp(computer('arch'), 'win64')
-        pathC = 'C:\cygwin64\bin';
-    elseif strcmp(computer('arch'), 'win32')
-        pathC = 'C:\cygwin\bin';
-    end
+    % % Retrieve architecture
+    % if strcmp(computer('arch'), 'win64')
+    %     pathC = 'C:\cygwin64\bin';
+    % elseif strcmp(computer('arch'), 'win32')
+    %     pathC = 'C:\cygwin\bin';
+    % end
     
-    % Check if path exists
-    if ~exist(pathC, 'dir') == 7
-        % Check if the path to cygwin has already been saved
-        if exist('CODE/VAR/cygwin.mat', file)
-            load('CODE/VAR/cygwin.mat', 'pathC');
+    % % Check if path exists
+    % if ~exist(pathC, 'dir') == 7
+    %     % Check if the path to cygwin has already been saved
+    %     if exist('CODE/VAR/cygwin.mat', file)
+    %         load('CODE/VAR/cygwin.mat', 'pathC');
             
-        % If not, retrieve it
-        else
-            choice = questdlg('Did you already install CYGWIN?', ...
-                'CYGWIN', ...
-                'Yes','No','Yes');
-            % Handle response
-            switch choice
-                case 'Yes'
-                    sprintf('Select the cygwin\bin directory\n');
-                    pathC = uigetdir('C:\', 'Select the cygwin\bin directory');
-                    save('CODE/VAR/cygwin.mat', 'pathC');
-                case 'No'
-                    url('https://cygwin.com/install.html');
-                    return
-            end
-        end
-    end
+    %     % If not, retrieve it
+    %     else
+    %         choice = questdlg('Did you already install CYGWIN?', ...
+    %             'CYGWIN', ...
+    %             'Yes','No','Yes');
+    %         % Handle response
+    %         switch choice
+    %             case 'Yes'
+    %                 sprintf('Select the cygwin\bin directory\n');
+    %                 pathC = uigetdir('C:\', 'Select the cygwin\bin directory');
+    %                 save('CODE/VAR/cygwin.mat', 'pathC');
+    %             case 'No'
+    %                 url('https://cygwin.com/install.html');
+    %                 return
+    %         end
+    %     end
+    % end
     
-    % Check if the cygwin path is already in the environment
-    if isempty(strfind(path1,pathC))
-        setenv('PATH', [path1,';',pathC,';']);
-    end
+    % % Check if the cygwin path is already in the environment
+    % if isempty(strfind(path1,pathC))
+    %     setenv('PATH', [path1,';',pathC,';']);
+    % end
     
-    if ~exist([pwd, filesep, 'MODEL', filesep, 'tephra2-2012.exe'], 'file')
-        warning('You need to manually compile Tephra2 on Cygwin!')
-        fprintf('\t1. Open the Cygwin terminal\n')
-        fprintf('\t2. Navigate to TephraProb\\MODEL\\ and type: \n')
-        fprintf('\t\t make clean\n')
-        fprintf('\t3. Then, type:\n')
-        fprintf('\t\t make\n')
-        fprintf('\t4. Once finished, type:\n')
-        fprintf('\t\t chmod 755 tephra2-2012.exe\n')
-        fprintf('\t5. To test the compilation, type:\n')
-        fprintf('\t\t ./tephra2-2012.exe\n')
-        fprintf('\tYou should see:\n')
-        fprintf('\t\t Missing comand line arguments,\n')
-        fprintf('\t\t USAGE: <program name> <config file> <points file> <wind file> <file of grain sizes>')
-        return
-    else
+    % if ~exist([pwd, filesep, 'MODEL', filesep, 'tephra2-2012.exe'], 'file')
+    %     warning('You need to manually compile Tephra2 on Cygwin!')
+    %     fprintf('\t1. Open the Cygwin terminal\n')
+    %     fprintf('\t2. Navigate to TephraProb\\MODEL\\ and type: \n')
+    %     fprintf('\t\t make clean\n')
+    %     fprintf('\t3. Then, type:\n')
+    %     fprintf('\t\t make\n')
+    %     fprintf('\t4. Once finished, type:\n')
+    %     fprintf('\t\t chmod 755 tephra2-2012.exe\n')
+    %     fprintf('\t5. To test the compilation, type:\n')
+    %     fprintf('\t\t ./tephra2-2012.exe\n')
+    %     fprintf('\tYou should see:\n')
+    %     fprintf('\t\t Missing comand line arguments,\n')
+    %     fprintf('\t\t USAGE: <program name> <config file> <points file> <wind file> <file of grain sizes>')
+    %     return
+    % else
+    %     cd(pth);
+    %     runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
+    % end
+    
+
+    pathC = [];
+    % Compiles the model and runs it
+    disp('Compiling Tephra2...')
+    cd(mod_pth);                            % Navigates to the makefile
+    system('wsl make clean');
+    [stat, cmd_out] = system('wsl make');       % Compiles TEPHRA2
+    
+    if stat == 0                            % If compilation ok
+        disp('Compiling done!')
         cd(pth);
         runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
+    else
+        cd(pth);
+        errordlg('There was a problem compiling TEPHRA2...', ' ');
+        display(cmd_out);
     end
-    
+
 % If UNIX
 else
     pathC = [];
@@ -291,7 +309,8 @@ if ispc
     tline(s:e) = [];
     tline = strrep(tline, '\', '/');
     
-    line_out = [pathC, ' --login -c "/cygdrive/', pth_tmp, '/MODEL/./tephra2-2012.exe ', tline, '"'];
+    % line_out = [pathC, ' --login -c "/cygdrive/', pth_tmp, '/MODEL/./tephra2-2012.exe ', tline, '"'];
+    line_out = ['wsl ', tline];
 else
     line_out = tline;
 end

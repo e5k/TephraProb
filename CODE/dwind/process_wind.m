@@ -139,6 +139,7 @@ elseif strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off')
         stor(i).LAT       = ncread(fullfile(in_path, fl(i).name), 'latitude');
         stor(i).LON       = ncread(fullfile(in_path, fl(i).name), 'longitude');
         
+        stor(i).LON(stor(i).LON<0) = 360-abs(stor(i).LON);
         % Find vent coordinates
        if i==1
            if length(stor(i).LAT) == 1 || length(stor(i).LON) == 1
@@ -161,9 +162,10 @@ elseif strcmp(wind.db, 'InterimOff') || strcmp(wind.db, 'ERA5Off')
     
     % Do some tests to see if the timestamp is correct
     time    = cat(1,stor.time);
-    minTime = stor(1).time(1);
-    maxTime = stor(i).time(end);
-
+%     minTime = stor(1).time(1);
+%     maxTime = stor(i).time(end);
+    minTime = min(time);
+    maxTime = max(time);
     
     % Check if the maximum time from downloaded data is equal to the
     % theoretical maximum time based on the time dimension

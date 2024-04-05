@@ -216,12 +216,25 @@ function cdp = but_map(~, ~, cdp)
 points = get(cdp.points_table, 'Data');
 
 figure; hold on; xlabel('Longitude'); ylabel('Latitude');
+
+x = [points{:,3}];
+y = [points{:,2}];
+xx = [min(x), max(x)];
+yy = [min(y), max(y)];
+xE = 0.25*(max(x)-min(x));
+yE = 0.25*(max(y)-min(y));
+
+plot(xx(1)-xE, yy(1)-yE, '.k', 'MarkerSize', 0.1);
+plot(xx(2)+xE, yy(2)+yE, '.k', 'MarkerSize', 0.1);
+plot_openstreetmap('scale', 2);
+
 for i = 1:size(points,1)
     plot(points{i,3}, points{i,2}, 'or', 'MarkerSize', 7, 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'r');
     text(points{i,3}, points{i,2}, ['  \leftarrow  ', points{i,1}]);
 end
 
-plot_google_map('maptype','terrain', 'MapScale', 1);
+% plot_google_map('maptype','terrain', 'MapScale', 1);
+
 set(gca, 'Layer', 'top');
 
 % Load button

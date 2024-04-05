@@ -29,6 +29,13 @@ Documentation can be found:
 
 > Biass, S., Bonadonna, C., Connor, L., Connor, C., 2016. TephraProb. [doi:10.5281/zenodo.3590721](https://doi.org/10.5281/zenodo.3590721)
 
+## Updates
+
+### April 2024 (1.7.3)
+
+- [x] It is now possible to run `runProb` from the CLI
+- [x] Fixed inconsistencies in `process_wind`
+
 ## Acknowledgments
 
 - **Zohar Bar-Yehuda** for the [plot_google_map](https://github.com/zoharby/plot_google_map) function.
