@@ -42,7 +42,8 @@ function tephraProb
 %vers = '1.6.4';     % Oct 2018 Similar wind profiles
 %vers = '1.7.1';     % Feb 2020 ERA-5
 %vers = '1.7.2';     % May 2022 OpenStreetMap plotting
-vers = '1.7.3';      % April 2024 runProb now possible via cli
+%vers = '1.7.3';      % April 2024 runProb now possible via cli
+vers = '1.7.4';      % April 2025 Replaced CYGWIN dependency by WSL
 
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')

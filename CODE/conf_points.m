@@ -258,7 +258,7 @@ fprintf('Choose a 3-columns tab delimited text file file containing site name, l
 if fl == 0; return; end
 
 fid = fopen(fullfile(pth,fl));
-data = textscan(fid, '%s %.03f %.03f');
+data = textscan(fid, '%s %.04f %.04f');
 fclose(fid);
 set(cdp.points_table, 'Data', [data{1}, num2cell(data{2}), num2cell(data{3})]);
 

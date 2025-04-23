@@ -77,7 +77,7 @@ if ~isempty(s)
     ylabel('Exceedance probability (%)');
     set(gca, 'YScale', 'Log', 'XScale', 'Log', 'Box', 'on');
     xlim([10^(-prefs.files.nbDigits), 10^(ceil(log10(maxtmp)))]);
-    ylim([.001 100]);
+    ylim([.1 100]);
     legend(leg,'Interpreter', 'none', 'Location', 'southwest');
     hold off
     

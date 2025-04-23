@@ -63,69 +63,9 @@ clear data
 
 mod_pth = [pwd, filesep, 'MODEL', filesep, 'forward_src', filesep];
 
-% On PCs, add the Cygwin folder to the PATH environment
-% Added 08-2018
-% Noticed a problem with the definition of the cygwin path when not
-% installed in c:\cygwin
+% 2025-04-23: Removed the CYGWIN dependency for WSL. Running CYGWIN
+% requires TephraProb < 1.7.4
 if ispc
-    % path1 = getenv('PATH');
-    
-    % % Retrieve architecture
-    % if strcmp(computer('arch'), 'win64')
-    %     pathC = 'C:\cygwin64\bin';
-    % elseif strcmp(computer('arch'), 'win32')
-    %     pathC = 'C:\cygwin\bin';
-    % end
-    
-    % % Check if path exists
-    % if ~exist(pathC, 'dir') == 7
-    %     % Check if the path to cygwin has already been saved
-    %     if exist('CODE/VAR/cygwin.mat', file)
-    %         load('CODE/VAR/cygwin.mat', 'pathC');
-            
-    %     % If not, retrieve it
-    %     else
-    %         choice = questdlg('Did you already install CYGWIN?', ...
-    %             'CYGWIN', ...
-    %             'Yes','No','Yes');
-    %         % Handle response
-    %         switch choice
-    %             case 'Yes'
-    %                 sprintf('Select the cygwin\bin directory\n');
-    %                 pathC = uigetdir('C:\', 'Select the cygwin\bin directory');
-    %                 save('CODE/VAR/cygwin.mat', 'pathC');
-    %             case 'No'
-    %                 url('https://cygwin.com/install.html');
-    %                 return
-    %         end
-    %     end
-    % end
-    
-    % % Check if the cygwin path is already in the environment
-    % if isempty(strfind(path1,pathC))
-    %     setenv('PATH', [path1,';',pathC,';']);
-    % end
-    
-    % if ~exist([pwd, filesep, 'MODEL', filesep, 'tephra2-2012.exe'], 'file')
-    %     warning('You need to manually compile Tephra2 on Cygwin!')
-    %     fprintf('\t1. Open the Cygwin terminal\n')
-    %     fprintf('\t2. Navigate to TephraProb\\MODEL\\ and type: \n')
-    %     fprintf('\t\t make clean\n')
-    %     fprintf('\t3. Then, type:\n')
-    %     fprintf('\t\t make\n')
-    %     fprintf('\t4. Once finished, type:\n')
-    %     fprintf('\t\t chmod 755 tephra2-2012.exe\n')
-    %     fprintf('\t5. To test the compilation, type:\n')
-    %     fprintf('\t\t ./tephra2-2012.exe\n')
-    %     fprintf('\tYou should see:\n')
-    %     fprintf('\t\t Missing comand line arguments,\n')
-    %     fprintf('\t\t USAGE: <program name> <config file> <points file> <wind file> <file of grain sizes>')
-    %     return
-    % else
-    %     cd(pth);
-    %     runit(project.run_pth,project.par,project.cores,pathC);  % Runs model
-    % end
-    
 
     pathC = [];
     % Compiles the model and runs it
@@ -150,8 +90,8 @@ else
     % Compiles the model and runs it
     disp('Compiling Tephra2...')
     cd(mod_pth);                            % Navigates to the makefile
-    system('make clean');
-    [stat, cmd_out] = system('make');       % Compiles TEPHRA2
+    system('wsl make clean');
+    [stat, cmd_out] = system('wsl make');       % Compiles TEPHRA2
     
     if stat == 0                            % If compilation ok
         disp('Compiling done!')
@@ -283,24 +223,18 @@ disp('Modelling finished!');
 function line_out = check_line(tline,pathC)
 
 % Some housekeeping tasks if run on windows
+% Starting 1.7.4, using WSL
 if ispc
-%     if strcmp(computer('arch'), 'win64')        % Cygwin 64 bits    
-%         pathC = 'C:\cygwin64\bin\bash';
-%     elseif strcmp(computer('arch'), 'win32')    % Cygwin 32 bits 
-%         pathC = 'C:\cygwin\bin\bash';
-%     end
-    
-    % Added 08-2018: Propagating the custom cygwin directory 
-    pathC = fullfile(pathC, 'bash');
 
     pth_tmp = pwd;                              % Retrieve path
     pth_tmp(regexp(pth_tmp, '\')) = '/';        
     pth_tmp(regexp(pth_tmp, ':')) = [];
-
+    drive = lower(pth_tmp(1));
+    pth_tmp = [drive, pth_tmp(2:end)];
     % Split the command line and add the cygdrive path
     tline_split = strsplit(tline, ' ');
     for i = [2,3,4,5,7]
-        tline_split{i} = regexprep(['/cygdrive/', pth_tmp, '/', tline_split{i}],'\s+','');
+        tline_split{i} = regexprep(['/mnt/', pth_tmp, '/', tline_split{i}],'\s+','');
     end
     
     % Concatanates final command line for cygwin
@@ -309,8 +243,8 @@ if ispc
     tline(s:e) = [];
     tline = strrep(tline, '\', '/');
     
-    % line_out = [pathC, ' --login -c "/cygdrive/', pth_tmp, '/MODEL/./tephra2-2012.exe ', tline, '"'];
-    line_out = ['wsl ', tline];
+    %line_out = [pathC, ' --login -c "/cygdrive/', pth_tmp, '/MODEL/./tephra2-2012.exe ', tline, '"'];
+    line_out = ['wsl bash -c "./MODEL/tephra2-2012 ', tline, '"'];
 else
     line_out = tline;
 end
