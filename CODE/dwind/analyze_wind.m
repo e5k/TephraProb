@@ -53,6 +53,12 @@ end
     
 load([FilePath, filesep, FileName]);
 
+% Make sure the time is a datetime object (usefull when coming from
+% cdsapitools
+if ~isa(stor_time, 'datetime')
+    stor_time = datetime(stor_time, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+end
+
 % Make sure time is as datevec
 if size(stor_time, 2) == 1
     stor_time = datevec(stor_time);
