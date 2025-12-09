@@ -14,7 +14,6 @@ Name:       tephraProb.m
 Purpose:    Main tephraProb interface
 Author:     Sebastien Biass
 Created:    April 2015
-Updates:    April 2016
 Copyright:  Sebastien Biass, University of Geneva, 2015
 License:    GNU GPL3
 
@@ -45,6 +44,7 @@ function tephraProb
 %vers = '1.7.3';     % April 2024 runProb now possible via cli
 %vers = '1.7.4';     % April 2025 Replaced CYGWIN dependency by WSL
 vers = '1.7.5';      % Oct 2025 Added a check when wind files are written from Python/cdsapitools
+vers = '1.7.6';      % Dec 2025 Fixed a bug in the way the closest wind level to vent_ht is retrieved in runProb.m
 
 % Check that you are located in the correct folder!
 if ~exist([pwd, filesep, 'tephraProb.m'], 'file')

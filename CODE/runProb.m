@@ -271,7 +271,7 @@ if isfield(data, 'testrun') && isfield(data, 'long_lasting')
                     end
                     % Get the closest value to vent height
                     level3       = find(abs(wind_prof(:,1)-data.vent_ht) == min(abs(wind_prof(:,1)-data.vent_ht)));
-                    if length(level2) > 1
+                    if length(level3) > 1
                         level3 = level3(1);
                     end
                     
